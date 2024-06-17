@@ -44,6 +44,32 @@ def test_and():
     assert not result[3]
     assert not result[4]
 
+def test_or():
+    arr = np.array([True, False, True, False, False])
+    other = np.array([True, True, False, True, True])
+    bma = BitmaskArray(arr)
+    bma_other = BitmaskArray(other)
+    result = bma | bma_other
+
+    assert result[0]
+    assert result[1]
+    assert result[2]
+    assert result[3]
+    assert result[4]
+
+def test_xor():
+    arr = np.array([True, False, True, False, False])
+    other = np.array([True, True, False, True, True])
+    bma = BitmaskArray(arr)
+    bma_other = BitmaskArray(other)
+    result = bma ^ bma_other
+
+    assert not result[0]
+    assert result[1]
+    assert result[2]
+    assert result[3]
+    assert result[4]
+
 """
 def test_buffer_protocol():
     arr = np.array([True, False, True, False, False])

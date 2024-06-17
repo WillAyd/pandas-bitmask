@@ -2,8 +2,6 @@
 /// Nothing in this mmodule may use the Python runtime
 #include "bitmask_impl.h"
 
-#include <stdexcept>
-
 BitmaskArrayImpl::BitmaskArrayImpl() = default;
 BitmaskArrayImpl::BitmaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap)
     : bitmap_(std::move(bitmap)) {}
@@ -66,45 +64,6 @@ auto BitmaskArrayImpl::Invert() const noexcept -> BitmaskArrayImpl {
   }
 
   new_bitmap->size_bits = nbits;
-  return BitmaskArrayImpl(std::move(new_bitmap));
-}
-
-auto BitmaskArrayImpl::And(const BitmaskArrayImpl &other) const
-    -> BitmaskArrayImpl {
-  if (bitmap_->size_bits != other.bitmap_->size_bits) {
-    throw std::invalid_argument("Shape of other does not match bitmask shape");
-  }
-
-  nanoarrow::UniqueBitmap new_bitmap;
-  const size_t nbits = bitmap_->size_bits;
-
-  ArrowBitmapInit(new_bitmap.get());
-  ArrowBitmapReserve(new_bitmap.get(), nbits);
-
-  const size_t size_bytes = bitmap_->buffer.size_bytes;
-  const size_t overflow_limit = SIZE_MAX - sizeof(size_t);
-  const size_t limit =
-      size_bytes > overflow_limit ? overflow_limit : size_bytes;
-
-  int64_t i = 0;
-  for (; i + sizeof(int64_t) - 1 < limit; i += sizeof(int64_t)) {
-    uint64_t value1;
-    uint64_t value2;
-    uint64_t result;
-    memcpy(&value1, &bitmap_->buffer.data[i], sizeof(uint64_t));
-    memcpy(&value2, &other.bitmap_->buffer.data[i], sizeof(uint64_t));
-    result = value1 & value2;
-    memcpy(&new_bitmap->buffer.data[i], &result, sizeof(uint64_t));
-  }
-
-  for (; i < bitmap_->buffer.size_bytes; i++) {
-    new_bitmap->buffer.data[i] =
-        bitmap_->buffer.data[i] & other.bitmap_->buffer.data[i];
-  }
-
-  new_bitmap->size_bits = bitmap_->size_bits;
-  new_bitmap->buffer.size_bytes = bitmap_->buffer.size_bytes;
-
   return BitmaskArrayImpl(std::move(new_bitmap));
 }
 

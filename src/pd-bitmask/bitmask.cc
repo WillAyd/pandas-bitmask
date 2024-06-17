@@ -3,6 +3,8 @@
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 
+#include <functional>
+
 namespace nb = nanobind;
 
 class BitmaskArray {
@@ -32,7 +34,14 @@ public:
     return BitmaskArray(impl_->Invert());
   }
   auto And(const BitmaskArray &other) const -> BitmaskArray {
-    return BitmaskArray(impl_->And(*other.impl_.get()));
+    return BitmaskArray(impl_->BinaryOp(*other.impl_.get(), std::bit_and()));
+  }
+  auto Or(const BitmaskArray &other) const -> BitmaskArray {
+    return BitmaskArray(impl_->BinaryOp(*other.impl_.get(), std::bit_or()));
+  }
+
+  auto XOr(const BitmaskArray &other) const -> BitmaskArray {
+    return BitmaskArray(impl_->BinaryOp(*other.impl_.get(), std::bit_xor()));
   }
 
   auto GetPyBuffer() const noexcept -> std::byte * {
@@ -86,5 +95,7 @@ NB_MODULE(bitmask, m) {
       .def("__setitem__", &BitmaskArray::SetItem)
       .def("__getitem__", &BitmaskArray::GetItem)
       .def("__invert__", &BitmaskArray::Invert)
-      .def("__and__", &BitmaskArray::And);
+      .def("__and__", &BitmaskArray::And)
+      .def("__or__", &BitmaskArray::Or)
+      .def("__xor__", &BitmaskArray::XOr);
 }
