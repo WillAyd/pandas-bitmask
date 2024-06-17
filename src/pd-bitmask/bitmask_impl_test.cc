@@ -29,6 +29,55 @@ TEST(BitmaskArrayImplTest, Length) {
   ASSERT_EQ(bma.Length(), 4);
 }
 
+TEST(BitmaskArrayImplTest, BitmapSetItemBasic) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+
+  auto bma = BitmaskArrayImpl(std::move(bitmap));
+  ASSERT_EQ(bma.GetItem(1), false);
+  ASSERT_EQ(bma.GetItem(2), true);
+  bma.SetItem(1, true);
+  bma.SetItem(2, false);
+  ASSERT_EQ(bma.GetItem(1), true);
+  ASSERT_EQ(bma.GetItem(2), false);
+}
+
+TEST(BitmaskArrayImplTest, BitmapSetItemNegative) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+
+  auto bma = BitmaskArrayImpl(std::move(bitmap));
+  ASSERT_EQ(bma.GetItem(-3), false);
+  ASSERT_EQ(bma.GetItem(-2), true);
+  bma.SetItem(-3, true);
+  bma.SetItem(-2, false);
+  ASSERT_EQ(bma.GetItem(-3), true);
+  ASSERT_EQ(bma.GetItem(-2), false);
+}
+
+TEST(BitmaskArrayImplTest, BitmapSetItemErrors) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+
+  auto bma = BitmaskArrayImpl(std::move(bitmap));
+  EXPECT_NO_THROW(bma.SetItem(3, true));
+  EXPECT_THROW(bma.SetItem(4, true), std::out_of_range);
+  EXPECT_NO_THROW(bma.SetItem(-4, true));
+  EXPECT_THROW(bma.SetItem(-5, true), std::out_of_range);
+}
+
 TEST(BitmaskArrayImplTest, Invert) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());

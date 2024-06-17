@@ -24,6 +24,9 @@ public:
   }
 
   auto Length() const noexcept -> Py_ssize_t { return impl_->Length(); }
+  auto SetItem(Py_ssize_t index, bool value) const -> bool {
+    impl_->SetItem(index, value);
+  }
   auto GetItem(Py_ssize_t index) const -> bool { return impl_->GetItem(index); }
   auto Invert() const noexcept -> BitmaskArray {
     return BitmaskArray(std::make_unique<BitmaskArrayImpl>(impl_->Invert()));
@@ -76,6 +79,7 @@ NB_MODULE(bitmask, m) {
   nb::class_<BitmaskArray>(m, "BitmaskArray", nb::type_slots(slots))
       .def(nb::init<nb::ndarray<uint8_t, nb::shape<-1>>>())
       .def("__len__", &BitmaskArray::Length)
+      .def("__setitem__", &BitmaskArray::SetItem)
       .def("__getitem__", &BitmaskArray::GetItem)
       .def("__invert__", &BitmaskArray::Invert);
 }

@@ -15,6 +15,7 @@ public:
   explicit BitmaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap);
   auto Length() const noexcept -> ssize_t;
   auto GetItem(ssize_t index) const -> bool;
+  auto SetItem(ssize_t index, bool value) -> void;
   auto Invert() const noexcept -> BitmaskArrayImpl;
 
   auto ExposeBufferForPython() noexcept -> std::byte *;

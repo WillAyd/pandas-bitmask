@@ -24,6 +24,20 @@ auto BitmaskArrayImpl::GetItem(ssize_t index) const -> bool {
   return ArrowBitGet(bitmap_->buffer.data, index);
 }
 
+auto BitmaskArrayImpl::SetItem(ssize_t index, bool value) -> void {
+  if (index < 0) {
+    index += bitmap_->size_bits;
+    if (index < 0) {
+      throw std::out_of_range("index out of range");
+    }
+  }
+  if (index >= bitmap_->size_bits) {
+    throw std::out_of_range("index out of range");
+  }
+
+  ArrowBitSetTo(bitmap_->buffer.data, index, value);
+}
+
 auto BitmaskArrayImpl::Invert() const noexcept -> BitmaskArrayImpl {
   nanoarrow::UniqueBitmap new_bitmap;
   const size_t nbits = bitmap_->size_bits;
