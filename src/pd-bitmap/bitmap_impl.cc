@@ -27,12 +27,12 @@ auto BitmaskArrayImpl::GetItem(ssize_t index) const -> bool {
 auto BitmaskArrayImpl::Invert() const noexcept -> BitmaskArrayImpl {
   nanoarrow::UniqueBitmap new_bitmap;
   const size_t nbits = bitmap_->size_bits;
-  const size_t rem = nbits % sizeof(int64_t);
 
   ArrowBitmapInit(new_bitmap.get());
   ArrowBitmapReserve(new_bitmap.get(), nbits);
 
-  size_t n_uint64s = nbits / sizeof(uint64_t);
+  const size_t n_uint64s = nbits / sizeof(uint64_t);
+  const size_t rem = (nbits % sizeof(int64_t) + 7) / 8;
   uint8_t *src = bitmap_->buffer.data;
   uint8_t *dst = new_bitmap->buffer.data;
 
@@ -67,4 +67,6 @@ auto BitmaskArrayImpl::ExposeBufferForPython() noexcept -> std::byte * {
   return py_buffer_;
 }
 
-auto BitmaskArrayImpl::ReleasePyBuffer() noexcept -> void { delete py_buffer_; }
+auto BitmaskArrayImpl::ReleasePyBuffer() noexcept -> void {
+  delete[] py_buffer_;
+}

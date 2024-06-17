@@ -21,6 +21,15 @@ impl_lib = library(
     install: true,
 )
 
+gtest_dep = dependency('gtest_main')
+impl_test = executable(
+    'bitmask-impl-test',
+    sources: ['src/pd-bitmap/bitmap_impl_test.cc'],
+    link_with: [impl_lib],
+    dependencies: [nanoarrow_dep, gtest_dep],
+)
+test('bitmask-impl', impl_test)
+
 py.extension_module(
     'bitmap',
     ['src/pd-bitmap/bitmap.cc'],
