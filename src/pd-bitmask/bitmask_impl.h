@@ -61,6 +61,7 @@ public:
   }
 
   auto Size() const noexcept -> ssize_t;
+  auto NBytes() const noexcept -> ssize_t;
   auto ExposeBufferForPython() noexcept -> std::byte *;
   auto ReleasePyBuffer() noexcept -> void;
 

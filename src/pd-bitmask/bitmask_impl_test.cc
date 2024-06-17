@@ -170,6 +170,20 @@ TEST(BitmaskArrayImplTest, Size) {
   ASSERT_EQ(size, 9);
 }
 
+TEST(BitmaskArrayImplTest, NBytes) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
+
+  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto size = bma.NBytes();
+  ASSERT_EQ(size, 2);
+}
+
 TEST(BitmaskArrayImplTest, ExposeBufferForPython) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());

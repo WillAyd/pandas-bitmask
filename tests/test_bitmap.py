@@ -76,6 +76,12 @@ def test_size():
 
     assert bma.size == len(arr)
 
+def test_nbytes():
+    arr = np.array([True, False, True, False, False, True, True, True, True])
+    bma = BitmaskArray(arr)
+
+    assert bma.nbytes == 2
+
 
 
 """

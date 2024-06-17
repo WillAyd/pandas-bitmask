@@ -71,6 +71,10 @@ auto BitmaskArrayImpl::Size() const noexcept -> ssize_t {
   return bitmap_->size_bits;
 }
 
+auto BitmaskArrayImpl::NBytes() const noexcept -> ssize_t {
+  return bitmap_->buffer.size_bytes;
+}
+
 auto BitmaskArrayImpl::ExposeBufferForPython() noexcept -> std::byte * {
   const auto nelems = this->Length();
   py_buffer_ = new std::byte[nelems];
