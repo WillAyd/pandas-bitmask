@@ -85,6 +85,7 @@ TEST(BitmaskArrayImplTest, Invert) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
 
   const auto bma = BitmaskArrayImpl(std::move(bitmap));
   const auto inverted = bma.Invert();
@@ -93,6 +94,36 @@ TEST(BitmaskArrayImplTest, Invert) {
   ASSERT_EQ(inverted.GetItem(1), true);
   ASSERT_EQ(inverted.GetItem(2), false);
   ASSERT_EQ(inverted.GetItem(3), false);
+  ASSERT_EQ(inverted.GetItem(8), false);
+}
+
+TEST(BitmaskArrayImplTest, And) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
+
+  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+
+  nanoarrow::UniqueBitmap other;
+  ArrowBitmapInit(other.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 2));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
+
+  const auto bma_other = BitmaskArrayImpl(std::move(bitmap));
+  const auto anded = bma.And(bma_other);
+
+  ASSERT_EQ(anded.GetItem(0), true);
+  ASSERT_EQ(anded.GetItem(1), false);
+  ASSERT_EQ(anded.GetItem(2), false);
+  ASSERT_EQ(anded.GetItem(3), false);
+  ASSERT_EQ(anded.GetItem(8), true);
 }
 
 TEST(BitmaskArrayImplTest, ExposeBufferForPython) {

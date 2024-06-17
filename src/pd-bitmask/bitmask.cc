@@ -19,9 +19,9 @@ public:
         nelems);
   }
 
-  explicit BitmaskArray(nanoarrow::UniqueBitmap &&bitmap) {
-    impl_ = std::make_unique<BitmaskArrayImpl>(std::move(bitmap));
-  }
+  explicit BitmaskArray(nanoarrow::UniqueBitmap &&bitmap)
+      : impl_(std::make_unique<BitmaskArrayImpl>(
+            BitmaskArrayImpl(std::move(bitmap)))) {}
 
   auto Length() const noexcept -> Py_ssize_t { return impl_->Length(); }
   auto SetItem(Py_ssize_t index, bool value) const -> bool {
@@ -29,7 +29,10 @@ public:
   }
   auto GetItem(Py_ssize_t index) const -> bool { return impl_->GetItem(index); }
   auto Invert() const noexcept -> BitmaskArray {
-    return BitmaskArray(std::make_unique<BitmaskArrayImpl>(impl_->Invert()));
+    return BitmaskArray(impl_->Invert());
+  }
+  auto And(const BitmaskArray &other) const -> BitmaskArray {
+    return BitmaskArray(impl_->And(*other.impl_.get()));
   }
 
   auto GetPyBuffer() const noexcept -> std::byte * {
@@ -40,8 +43,9 @@ public:
   }
 
 private:
-  explicit BitmaskArray(std::unique_ptr<BitmaskArrayImpl> bmi)
-      : impl_(std::move(bmi)) {}
+  explicit BitmaskArray(BitmaskArrayImpl &&bmi)
+      : impl_(std::make_unique<BitmaskArrayImpl>(std::move(bmi))) {}
+
   std::unique_ptr<BitmaskArrayImpl> impl_;
 };
 
@@ -81,5 +85,6 @@ NB_MODULE(bitmask, m) {
       .def("__len__", &BitmaskArray::Length)
       .def("__setitem__", &BitmaskArray::SetItem)
       .def("__getitem__", &BitmaskArray::GetItem)
-      .def("__invert__", &BitmaskArray::Invert);
+      .def("__invert__", &BitmaskArray::Invert)
+      .def("__and__", &BitmaskArray::And);
 }

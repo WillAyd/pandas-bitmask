@@ -31,6 +31,19 @@ def test_invert():
     for index, x in enumerate(arr):
         assert inverted[index] != x
 
+def test_and():
+    arr = np.array([True, False, True, False, False])
+    other = np.array([True, True, False, True, True])
+    bma = BitmaskArray(arr)
+    bma_other = BitmaskArray(other)
+    result = bma & bma_other
+
+    assert result[0]
+    assert not result[1]
+    assert not result[2]
+    assert not result[3]
+    assert not result[4]
+
 """
 def test_buffer_protocol():
     arr = np.array([True, False, True, False, False])

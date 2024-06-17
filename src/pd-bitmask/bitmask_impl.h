@@ -17,6 +17,7 @@ public:
   auto GetItem(ssize_t index) const -> bool;
   auto SetItem(ssize_t index, bool value) -> void;
   auto Invert() const noexcept -> BitmaskArrayImpl;
+  auto And(const BitmaskArrayImpl &other) const -> BitmaskArrayImpl;
 
   auto ExposeBufferForPython() noexcept -> std::byte *;
   auto ReleasePyBuffer() noexcept -> void;
