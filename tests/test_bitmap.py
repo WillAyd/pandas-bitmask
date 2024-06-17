@@ -82,7 +82,17 @@ def test_nbytes():
 
     assert bma.nbytes == 2
 
+def test_any():
+    arr = np.array([True, False, True, False, False, True, True, True, True])
+    bma = BitmaskArray(arr)
 
+    assert arr.any()
+
+def test_all():
+    arr = np.array([True, False, True, False, False, True, True, True, True])
+    bma = BitmaskArray(arr)
+
+    assert not arr.all()
 
 """
 def test_buffer_protocol():

@@ -43,16 +43,14 @@ auto BitmaskArrayImpl::Invert() const noexcept -> BitmaskArrayImpl {
   ArrowBitmapInit(new_bitmap.get());
   ArrowBitmapReserve(new_bitmap.get(), nbits);
 
-  const size_t n_uint64s = nbits / sizeof(uint64_t);
-  const size_t rem = (nbits % sizeof(int64_t) + 7) / 8;
-
-  const size_t size_bytes = bitmap_->buffer.size_bytes;
-  const size_t overflow_limit = SIZE_MAX - sizeof(size_t);
-  const size_t limit =
+  const int64_t size_bytes = bitmap_->buffer.size_bytes;
+  const int64_t overflow_limit = INT64_MAX - sizeof(int64_t);
+  const int64_t limit =
       size_bytes > overflow_limit ? overflow_limit : size_bytes;
 
   int64_t i = 0;
-  for (; i + sizeof(int64_t) - 1 < limit; i += sizeof(int64_t)) {
+  for (; i + static_cast<int64_t>(sizeof(int64_t)) - 1 < limit;
+       i += sizeof(int64_t)) {
     uint64_t value;
     memcpy(&value, &bitmap_->buffer.data[i], sizeof(uint64_t));
     value = ~value;
@@ -73,6 +71,78 @@ auto BitmaskArrayImpl::Size() const noexcept -> ssize_t {
 
 auto BitmaskArrayImpl::NBytes() const noexcept -> ssize_t {
   return bitmap_->buffer.size_bytes;
+}
+
+auto BitmaskArrayImpl::Any() const noexcept -> bool {
+  const int64_t nbits = bitmap_->size_bits;
+  if (nbits < 1) {
+    return false;
+  }
+
+  const int64_t size_bytes = bitmap_->buffer.size_bytes;
+  const int64_t overflow_limit = INT64_MAX - sizeof(int64_t);
+  const int64_t limit =
+      size_bytes > overflow_limit ? overflow_limit : size_bytes;
+  int64_t i = 0;
+  for (; i + static_cast<int64_t>(sizeof(int64_t)) - 1 < limit;
+       i += sizeof(int64_t)) {
+    uint64_t value;
+    memcpy(&value, &bitmap_->buffer.data[i], sizeof(uint64_t));
+    if (value != 0x0) {
+      return true;
+    }
+  }
+
+  for (; i < bitmap_->buffer.size_bytes - 1; i++) {
+    if (bitmap_->buffer.data[i] != 0x0) {
+      return true;
+    }
+  }
+
+  const int64_t bits_remaining = nbits - ((size_bytes - 1) * 8);
+  for (int64_t i = 0; i < bits_remaining; i++) {
+    if (ArrowBitGet(bitmap_->buffer.data, nbits - i - 1) == 1) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+auto BitmaskArrayImpl::All() const noexcept -> bool {
+  const int64_t nbits = bitmap_->size_bits;
+  if (nbits < 1) {
+    return true;
+  }
+
+  const int64_t size_bytes = bitmap_->buffer.size_bytes;
+  const int64_t overflow_limit = INT64_MAX - sizeof(int64_t);
+  const int64_t limit =
+      size_bytes > overflow_limit ? overflow_limit : size_bytes;
+  int64_t i = 0;
+  for (; i + static_cast<int64_t>(sizeof(int64_t)) - 1 < limit;
+       i += sizeof(int64_t)) {
+    uint64_t value;
+    memcpy(&value, &bitmap_->buffer.data[i], sizeof(uint64_t));
+    if (value != UINT64_MAX) {
+      return false;
+    }
+  }
+
+  for (; i < bitmap_->buffer.size_bytes - 1; i++) {
+    if (bitmap_->buffer.data[i] != 0xff) {
+      return false;
+    }
+  }
+
+  const size_t bits_remaining = nbits - ((size_bytes - 1) * 8);
+  for (size_t i = 0; i < bits_remaining; i++) {
+    if (ArrowBitGet(bitmap_->buffer.data, nbits - i - 1) == 0) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 auto BitmaskArrayImpl::ExposeBufferForPython() noexcept -> std::byte * {

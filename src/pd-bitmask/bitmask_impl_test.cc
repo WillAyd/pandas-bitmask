@@ -184,6 +184,51 @@ TEST(BitmaskArrayImplTest, NBytes) {
   ASSERT_EQ(size, 2);
 }
 
+class BitmaskArrayAnyAllTest : public testing::Test {
+protected:
+  BitmaskArrayAnyAllTest() {
+    nanoarrow::UniqueBitmap first;
+    ArrowBitmapInit(first.get());
+
+    NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(first.get(), 1, 7));
+    NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(first.get(), 0, 8));
+    bma1_ = BitmaskArrayImpl(std::move(first));
+
+    nanoarrow::UniqueBitmap second;
+    ArrowBitmapInit(second.get());
+
+    NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(second.get(), 1, 15));
+    bma2_ = BitmaskArrayImpl(std::move(second));
+
+    nanoarrow::UniqueBitmap third;
+    ArrowBitmapInit(third.get());
+
+    NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(third.get(), 0, 15));
+    bma3_ = BitmaskArrayImpl(std::move(third));
+
+    nanoarrow::UniqueBitmap fourth;
+    ArrowBitmapInit(fourth.get());
+
+    bma4_ = BitmaskArrayImpl(std::move(fourth));
+  }
+
+  BitmaskArrayImpl bma1_, bma2_, bma3_, bma4_;
+};
+
+TEST_F(BitmaskArrayAnyAllTest, All) {
+  ASSERT_FALSE(bma1_.All());
+  ASSERT_TRUE(bma2_.All());
+  ASSERT_FALSE(bma3_.All());
+  ASSERT_TRUE(bma4_.All());
+}
+
+TEST_F(BitmaskArrayAnyAllTest, Any) {
+  ASSERT_TRUE(bma1_.Any());
+  ASSERT_TRUE(bma2_.Any());
+  ASSERT_FALSE(bma3_.Any());
+  ASSERT_FALSE(bma4_.Any());
+}
+
 TEST(BitmaskArrayImplTest, ExposeBufferForPython) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());

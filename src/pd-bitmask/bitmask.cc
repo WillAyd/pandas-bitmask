@@ -46,6 +46,8 @@ public:
 
   auto Size() const noexcept -> Py_ssize_t { return impl_->Size(); }
   auto NBytes() const noexcept -> Py_ssize_t { return impl_->NBytes(); }
+  auto Any() const noexcept -> bool { return impl_->Any(); }
+  auto All() const noexcept -> bool { return impl_->All(); }
 
   auto GetPyBuffer() const noexcept -> std::byte * {
     return impl_->ExposeBufferForPython();
@@ -111,8 +113,10 @@ NB_MODULE(bitmask, m) {
       .def_prop_ro("bytes", &BitMaskArray::Bytes)
       .def_prop_ro("shape", &BitMaskArray::Shape)
       //.def_prop_ro("dtype", &BitMaskArray::DType)
-      .def("any", &BitMaskArray::Any)
-      .def("all", &BitMaskArray::All)
+      */
+      .def("any", &BitmaskArray::Any)
+      .def("all", &BitmaskArray::All)
+      /*
       .def("sum", &BitMaskArray::Sum)
       .def("take_1d", &BitMaskArray::Take1D)
       .def("copy", &BitMaskArray::Copy)
