@@ -1,5 +1,5 @@
 project(
-    'pd-bitmap',
+    'pd-bitmask',
     'cpp',
     version: '0.0.1.dev0',
     license: 'Apache-2.0',
@@ -15,8 +15,8 @@ nanobind_dep = dependency('nanobind')
 nanoarrow_dep = dependency('nanoarrow')
 
 impl_lib = library(
-    'bitmap_impl',
-    ['src/pd-bitmap/bitmap_impl.cc'],
+    'bitmask_impl',
+    ['src/pd-bitmask/bitmask_impl.cc'],
     dependencies: [nanoarrow_dep],
     install: true,
 )
@@ -24,15 +24,15 @@ impl_lib = library(
 gtest_dep = dependency('gtest_main')
 impl_test = executable(
     'bitmask-impl-test',
-    sources: ['src/pd-bitmap/bitmap_impl_test.cc'],
+    sources: ['src/pd-bitmask/bitmask_impl_test.cc'],
     link_with: [impl_lib],
     dependencies: [nanoarrow_dep, gtest_dep],
 )
 test('bitmask-impl', impl_test)
 
 py.extension_module(
-    'bitmap',
-    ['src/pd-bitmap/bitmap.cc'],
+    'bitmask',
+    ['src/pd-bitmask/bitmask.cc'],
     link_with: impl_lib,
     dependencies: [nanobind_dep, nanoarrow_dep],
     install: true,

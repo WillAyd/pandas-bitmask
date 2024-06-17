@@ -1,7 +1,6 @@
-#include "bitmap_impl.h"
+#include "bitmask_impl.h"
 
 #include <gtest/gtest.h>
-#include <nanoarrow/nanoarrow.hpp>
 
 TEST(BitmaskArrayImplTest, BitmapConstructor) {
   nanoarrow::UniqueBitmap bitmap;

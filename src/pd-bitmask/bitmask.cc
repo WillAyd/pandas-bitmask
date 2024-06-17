@@ -1,11 +1,7 @@
-#include <nanoarrow/nanoarrow.hpp>
+#include "bitmask_impl.h"
 
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
-
-#include <memory>
-
-#include "bitmap_impl.h"
 
 namespace nb = nanobind;
 
@@ -76,7 +72,7 @@ PyType_Slot slots[] = {{Py_bf_getbuffer, (void *)GetBuffer},
                        {Py_bf_releasebuffer, (void *)ReleaseBuffer},
                        {0, nullptr}};
 
-NB_MODULE(bitmap, m) {
+NB_MODULE(bitmask, m) {
   nb::class_<BitmaskArray>(m, "BitmaskArray", nb::type_slots(slots))
       .def(nb::init<nb::ndarray<uint8_t, nb::shape<-1>>>())
       .def("__len__", &BitmaskArray::Length)

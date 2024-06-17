@@ -1,6 +1,6 @@
 /// Implementation of the Bitmap Array class
 /// Nothing in this mmodule may use the Python runtime
-#include "bitmap_impl.h"
+#include "bitmask_impl.h"
 
 #include <stdexcept>
 

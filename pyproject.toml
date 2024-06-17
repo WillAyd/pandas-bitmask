@@ -9,9 +9,9 @@ requires = [
 build-backend= 'mesonpy'
 
 [project]
-name = 'pd-bitmap'
+name = 'pd-bitmask'
 dynamic = ['version']
-description = 'Bitmap implementation for pandas which adheres to the buffer protocol'
+description = 'Bitmask implementation for pandas which adheres to the buffer protocol'
 authors = [
   { name = 'Will Ayd', email='william.ayd@icloud.com' },
 ]
