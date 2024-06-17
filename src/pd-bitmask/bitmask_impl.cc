@@ -67,6 +67,10 @@ auto BitmaskArrayImpl::Invert() const noexcept -> BitmaskArrayImpl {
   return BitmaskArrayImpl(std::move(new_bitmap));
 }
 
+auto BitmaskArrayImpl::Size() const noexcept -> ssize_t {
+  return bitmap_->size_bits;
+}
+
 auto BitmaskArrayImpl::ExposeBufferForPython() noexcept -> std::byte * {
   const auto nelems = this->Length();
   py_buffer_ = new std::byte[nelems];

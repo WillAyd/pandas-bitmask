@@ -44,6 +44,8 @@ public:
     return BitmaskArray(impl_->BinaryOp(*other.impl_.get(), std::bit_xor()));
   }
 
+  auto Size() const noexcept -> Py_ssize_t { return impl_->Size(); }
+
   auto GetPyBuffer() const noexcept -> std::byte * {
     return impl_->ExposeBufferForPython();
   }
@@ -97,5 +99,10 @@ NB_MODULE(bitmask, m) {
       .def("__invert__", &BitmaskArray::Invert)
       .def("__and__", &BitmaskArray::And)
       .def("__or__", &BitmaskArray::Or)
-      .def("__xor__", &BitmaskArray::XOr);
+      .def("__xor__", &BitmaskArray::XOr)
+      //.def("__getstate__",
+      //.def("__setstate__",
+      //.def("__iter__",
+      //.def("concatenate",
+      .def_prop_ro("size", &BitmaskArray::Size);
 }

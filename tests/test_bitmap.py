@@ -70,6 +70,14 @@ def test_xor():
     assert result[3]
     assert result[4]
 
+def test_size():
+    arr = np.array([True, False, True, False, False])
+    bma = BitmaskArray(arr)
+
+    assert bma.size == len(arr)
+
+
+
 """
 def test_buffer_protocol():
     arr = np.array([True, False, True, False, False])
