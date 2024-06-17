@@ -1,0 +1,34 @@
+[build-system]
+requires = [
+  'meson-python',
+  'meson',
+  'cmake',  # for nanobind
+  'wheel',
+]
+
+build-backend= 'mesonpy'
+
+[project]
+name = 'pd-bitmap'
+dynamic = ['version']
+description = 'Bitmap implementation for pandas which adheres to the buffer protocol'
+authors = [
+  { name = 'Will Ayd', email='william.ayd@icloud.com' },
+]
+license = {file = 'LICENSE'}
+requires-python = '>=3.9'
+classifiers = [
+    'Development Status :: 2 - Pre-Alpha',
+    'Environment :: Console',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: Apache Software License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Topic :: Scientific/Engineering'
+]
