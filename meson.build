@@ -14,9 +14,17 @@ py = import('python').find_installation()
 nanobind_dep = dependency('nanobind')
 nanoarrow_dep = dependency('nanoarrow')
 
+impl_lib = library(
+    'bitmap_impl',
+    ['src/pd-bitmap/bitmap_impl.cc'],
+    dependencies: [nanoarrow_dep],
+    install: true,
+)
+
 py.extension_module(
     'bitmap',
     ['src/pd-bitmap/bitmap.cc'],
+    link_with: impl_lib,
     dependencies: [nanobind_dep, nanoarrow_dep],
     install: true,
 )
