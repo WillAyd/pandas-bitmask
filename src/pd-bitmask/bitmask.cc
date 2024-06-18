@@ -48,6 +48,7 @@ public:
   auto NBytes() const noexcept -> Py_ssize_t { return impl_->NBytes(); }
   auto Any() const noexcept -> bool { return impl_->Any(); }
   auto All() const noexcept -> bool { return impl_->All(); }
+  auto Sum() const noexcept -> Py_ssize_t { return impl_->Sum(); }
 
   auto GetPyBuffer() const noexcept -> std::byte * {
     return impl_->ExposeBufferForPython();
@@ -110,17 +111,17 @@ NB_MODULE(bitmask, m) {
       .def_prop_ro("size", &BitmaskArray::Size)
       .def_prop_ro("nbytes", &BitmaskArray::NBytes)
       /*
-      .def_prop_ro("bytes", &BitMaskArray::Bytes)
-      .def_prop_ro("shape", &BitMaskArray::Shape)
-      //.def_prop_ro("dtype", &BitMaskArray::DType)
+      .def_prop_ro("bytes", &BitmaskArray::Bytes)
+      .def_prop_ro("shape", &BitmaskArray::Shape)
+      //.def_prop_ro("dtype", &BitmaskArray::DType)
       */
       .def("any", &BitmaskArray::Any)
       .def("all", &BitmaskArray::All)
+      .def("sum", &BitmaskArray::Sum)
       /*
-      .def("sum", &BitMaskArray::Sum)
-      .def("take_1d", &BitMaskArray::Take1D)
-      .def("copy", &BitMaskArray::Copy)
-      .def("to_numpy", &BitMaskArray::ToNumpy)
+      .def("take_1d", &BitmaskArray::Take1D)
+      .def("copy", &BitmaskArray::Copy)
+      .def("to_numpy", &BitmaskArray::ToNumpy)
       */
       ;
 }

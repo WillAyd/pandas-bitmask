@@ -94,6 +94,12 @@ def test_all():
 
     assert not arr.all()
 
+def test_sum():
+    arr = np.array([True, False, True, False, False, True, True, True, True])
+    bma = BitmaskArray(arr)
+
+    assert bma.sum() == 6
+
 """
 def test_buffer_protocol():
     arr = np.array([True, False, True, False, False])

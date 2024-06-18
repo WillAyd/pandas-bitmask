@@ -229,6 +229,19 @@ TEST_F(BitmaskArrayAnyAllTest, Any) {
   ASSERT_FALSE(bma4_.Any());
 }
 
+TEST(BitmaskArrayImplTest, Sum) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
+
+  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  ASSERT_EQ(bma.Sum(), 8);
+}
+
 TEST(BitmaskArrayImplTest, ExposeBufferForPython) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());

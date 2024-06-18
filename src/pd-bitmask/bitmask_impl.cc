@@ -1,6 +1,7 @@
 /// Implementation of the Bitmap Array class
 /// Nothing in this mmodule may use the Python runtime
 #include "bitmask_impl.h"
+#include "buffer_inline.h"
 
 BitmaskArrayImpl::BitmaskArrayImpl() = default;
 BitmaskArrayImpl::BitmaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap)
@@ -143,6 +144,11 @@ auto BitmaskArrayImpl::All() const noexcept -> bool {
   }
 
   return true;
+}
+
+auto BitmaskArrayImpl::Sum() const noexcept -> ssize_t {
+  return static_cast<ssize_t>(
+      ArrowBitCountSet(bitmap_->buffer.data, 0, bitmap_->size_bits));
 }
 
 auto BitmaskArrayImpl::ExposeBufferForPython() noexcept -> std::byte * {
