@@ -82,6 +82,12 @@ def test_nbytes():
 
     assert bma.nbytes == 2
 
+def test_dtype():
+    arr = np.array([True, False, True, False, False, True, True, True, True])
+    bma = BitmaskArray(arr)
+
+    assert bma.dtype == "bool"
+
 def test_any():
     arr = np.array([True, False, True, False, False, True, True, True, True])
     bma = BitmaskArray(arr)
@@ -99,6 +105,15 @@ def test_sum():
     bma = BitmaskArray(arr)
 
     assert bma.sum() == 6
+
+def test_copy():
+    arr = np.array([True, False, True, False, False, True, True, True, True])
+    bma = BitmaskArray(arr)
+    copied = bma.copy()
+
+    assert copied is not bma
+    for i in range(len(arr)):
+        assert bma[i] == copied[i]
 
 """
 def test_buffer_protocol():

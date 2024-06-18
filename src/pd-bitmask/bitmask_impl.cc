@@ -151,6 +151,19 @@ auto BitmaskArrayImpl::Sum() const noexcept -> ssize_t {
       ArrowBitCountSet(bitmap_->buffer.data, 0, bitmap_->size_bits));
 }
 
+auto BitmaskArrayImpl::Copy() const noexcept -> BitmaskArrayImpl {
+  nanoarrow::UniqueBitmap new_bitmap;
+  const size_t nbits = bitmap_->size_bits;
+
+  ArrowBitmapInit(new_bitmap.get());
+  ArrowBitmapReserve(new_bitmap.get(), nbits);
+  memcpy(new_bitmap->buffer.data, bitmap_->buffer.data,
+         bitmap_->buffer.size_bytes);
+
+  new_bitmap->size_bits = nbits;
+  return BitmaskArrayImpl(std::move(new_bitmap));
+}
+
 auto BitmaskArrayImpl::ExposeBufferForPython() noexcept -> std::byte * {
   const auto nelems = this->Length();
   py_buffer_ = new std::byte[nelems];

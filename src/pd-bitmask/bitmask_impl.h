@@ -66,6 +66,8 @@ public:
   auto All() const noexcept -> bool;
   auto Sum() const noexcept -> ssize_t;
 
+  auto Copy() const noexcept -> BitmaskArrayImpl;
+
   auto ExposeBufferForPython() noexcept -> std::byte *;
   auto ReleasePyBuffer() noexcept -> void;
 

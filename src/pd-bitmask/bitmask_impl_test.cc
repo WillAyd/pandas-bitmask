@@ -242,6 +242,23 @@ TEST(BitmaskArrayImplTest, Sum) {
   ASSERT_EQ(bma.Sum(), 8);
 }
 
+TEST(BitmaskArrayImplTest, Copy) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+
+  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto copied = bma.Copy();
+
+  ASSERT_EQ(copied.GetItem(0), true);
+  ASSERT_EQ(copied.GetItem(1), false);
+  ASSERT_EQ(copied.GetItem(2), true);
+  ASSERT_EQ(copied.GetItem(3), true);
+}
+
 TEST(BitmaskArrayImplTest, ExposeBufferForPython) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
