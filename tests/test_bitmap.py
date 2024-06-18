@@ -82,6 +82,20 @@ def test_nbytes():
 
     assert bma.nbytes == 2
 
+@pytest.mark.parametrize(
+    "arr,expected",
+    [
+        pytest.param(np.array([False, False]), bytes([0x0]), id="all_false"),
+        pytest.param(np.array([True, False]), bytes([0x1]), id="first_true"),
+        pytest.param(np.array([False, True]), bytes([0x2]), id="second_true"),
+        pytest.param(np.array([True, True]), bytes([0x3]), id="all_true"),
+        pytest.param(np.array([True, False] * 8), bytes([0x55, 0x55]), id="multibyte"),
+    ],
+)
+def test_bytes(arr, expected):
+    bma = BitmaskArray(arr)
+    assert bma.bytes == expected
+
 def test_dtype():
     arr = np.array([True, False, True, False, False, True, True, True, True])
     bma = BitmaskArray(arr)

@@ -46,6 +46,19 @@ public:
 
   auto Size() const noexcept -> Py_ssize_t { return impl_->Size(); }
   auto NBytes() const noexcept -> Py_ssize_t { return impl_->NBytes(); }
+
+  auto Bytes() const {
+    // TODO: is there a way to use the BitmaskImpl directly instead of creating
+    // a bytearray first? The only point of the bytearray is to create an object
+    // that uses the Python buffer protocol, which we
+    auto py_bytearray = PyByteArray_FromStringAndSize(
+        reinterpret_cast<const char *>(impl_->bitmap_->buffer.data),
+        impl_->bitmap_->buffer.size_bytes);
+    auto bytearray = nb::steal(py_bytearray);
+    auto py_bytes = PyBytes_FromObject(bytearray.ptr());
+    return nb::steal(py_bytes);
+  }
+
   auto DType() const noexcept -> const char * { return "bool"; }
   auto Any() const noexcept -> bool { return impl_->Any(); }
   auto All() const noexcept -> bool { return impl_->All(); }
@@ -115,10 +128,8 @@ NB_MODULE(bitmask, m) {
       //.def("concatenate",
       .def_prop_ro("size", &BitmaskArray::Size)
       .def_prop_ro("nbytes", &BitmaskArray::NBytes)
-      /*
       .def_prop_ro("bytes", &BitmaskArray::Bytes)
-      .def_prop_ro("shape", &BitmaskArray::Shape)
-      */
+      //.def_prop_ro("shape", &BitmaskArray::Shape)
       .def_prop_ro("dtype", &BitmaskArray::DType)
       .def("any", &BitmaskArray::Any)
       .def("all", &BitmaskArray::All)
