@@ -1,10 +1,10 @@
-#include "bitmask_impl.h"
+#include "pandas_mask_impl.h"
 
 #include <gtest/gtest.h>
 
 #include <functional>
 
-TEST(BitmaskArrayImplTest, BitmapConstructor) {
+TEST(PandasMaskArrayImplTest, BitmapConstructor) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -12,14 +12,14 @@ TEST(BitmaskArrayImplTest, BitmapConstructor) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
   ASSERT_EQ(bma.GetItem(0), true);
   ASSERT_EQ(bma.GetItem(1), false);
   ASSERT_EQ(bma.GetItem(2), true);
   ASSERT_EQ(bma.GetItem(3), true);
 }
 
-TEST(BitmaskArrayImplTest, Length) {
+TEST(PandasMaskArrayImplTest, Length) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -27,11 +27,11 @@ TEST(BitmaskArrayImplTest, Length) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
   ASSERT_EQ(bma.Length(), 4);
 }
 
-TEST(BitmaskArrayImplTest, BitmapSetItemBasic) {
+TEST(PandasMaskArrayImplTest, BitmapSetItemBasic) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -39,7 +39,7 @@ TEST(BitmaskArrayImplTest, BitmapSetItemBasic) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
 
-  auto bma = BitmaskArrayImpl(std::move(bitmap));
+  auto bma = PandasMaskArrayImpl(std::move(bitmap));
   ASSERT_EQ(bma.GetItem(1), false);
   ASSERT_EQ(bma.GetItem(2), true);
   bma.SetItem(1, true);
@@ -48,7 +48,7 @@ TEST(BitmaskArrayImplTest, BitmapSetItemBasic) {
   ASSERT_EQ(bma.GetItem(2), false);
 }
 
-TEST(BitmaskArrayImplTest, BitmapSetItemNegative) {
+TEST(PandasMaskArrayImplTest, BitmapSetItemNegative) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -56,7 +56,7 @@ TEST(BitmaskArrayImplTest, BitmapSetItemNegative) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
 
-  auto bma = BitmaskArrayImpl(std::move(bitmap));
+  auto bma = PandasMaskArrayImpl(std::move(bitmap));
   ASSERT_EQ(bma.GetItem(-3), false);
   ASSERT_EQ(bma.GetItem(-2), true);
   bma.SetItem(-3, true);
@@ -65,7 +65,7 @@ TEST(BitmaskArrayImplTest, BitmapSetItemNegative) {
   ASSERT_EQ(bma.GetItem(-2), false);
 }
 
-TEST(BitmaskArrayImplTest, BitmapSetItemErrors) {
+TEST(PandasMaskArrayImplTest, BitmapSetItemErrors) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -73,14 +73,14 @@ TEST(BitmaskArrayImplTest, BitmapSetItemErrors) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
 
-  auto bma = BitmaskArrayImpl(std::move(bitmap));
+  auto bma = PandasMaskArrayImpl(std::move(bitmap));
   EXPECT_NO_THROW(bma.SetItem(3, true));
   EXPECT_THROW(bma.SetItem(4, true), std::out_of_range);
   EXPECT_NO_THROW(bma.SetItem(-4, true));
   EXPECT_THROW(bma.SetItem(-5, true), std::out_of_range);
 }
 
-TEST(BitmaskArrayImplTest, Invert) {
+TEST(PandasMaskArrayImplTest, Invert) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -89,7 +89,7 @@ TEST(BitmaskArrayImplTest, Invert) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
   const auto inverted = bma.Invert();
 
   ASSERT_EQ(inverted.GetItem(0), false);
@@ -99,9 +99,9 @@ TEST(BitmaskArrayImplTest, Invert) {
   ASSERT_EQ(inverted.GetItem(8), false);
 }
 
-class BitmaskArrayBinaryOpTest : public testing::Test {
+class PandasMaskArrayBinaryOpTest : public testing::Test {
 protected:
-  BitmaskArrayBinaryOpTest() {
+  PandasMaskArrayBinaryOpTest() {
     nanoarrow::UniqueBitmap bitmap;
     ArrowBitmapInit(bitmap.get());
 
@@ -110,7 +110,7 @@ protected:
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
 
-    bma1_ = BitmaskArrayImpl(std::move(bitmap));
+    bma1_ = PandasMaskArrayImpl(std::move(bitmap));
 
     nanoarrow::UniqueBitmap other;
     ArrowBitmapInit(other.get());
@@ -120,13 +120,13 @@ protected:
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 2));
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
 
-    bma2_ = BitmaskArrayImpl(std::move(bitmap));
+    bma2_ = PandasMaskArrayImpl(std::move(bitmap));
   }
 
-  BitmaskArrayImpl bma1_, bma2_;
+  PandasMaskArrayImpl bma1_, bma2_;
 };
 
-TEST_F(BitmaskArrayBinaryOpTest, Add) {
+TEST_F(PandasMaskArrayBinaryOpTest, Add) {
   const auto anded = bma1_.BinaryOp(bma2_, std::bit_and());
 
   ASSERT_EQ(anded.GetItem(0), true);
@@ -136,7 +136,7 @@ TEST_F(BitmaskArrayBinaryOpTest, Add) {
   ASSERT_EQ(anded.GetItem(8), true);
 }
 
-TEST_F(BitmaskArrayBinaryOpTest, Or) {
+TEST_F(PandasMaskArrayBinaryOpTest, Or) {
   const auto ored = bma1_.BinaryOp(bma2_, std::bit_or());
 
   ASSERT_EQ(ored.GetItem(0), true);
@@ -146,7 +146,7 @@ TEST_F(BitmaskArrayBinaryOpTest, Or) {
   ASSERT_EQ(ored.GetItem(8), true);
 }
 
-TEST_F(BitmaskArrayBinaryOpTest, XOr) {
+TEST_F(PandasMaskArrayBinaryOpTest, XOr) {
   const auto xored = bma1_.BinaryOp(bma2_, std::bit_xor());
 
   ASSERT_EQ(xored.GetItem(0), false);
@@ -156,7 +156,7 @@ TEST_F(BitmaskArrayBinaryOpTest, XOr) {
   ASSERT_EQ(xored.GetItem(8), false);
 }
 
-TEST(BitmaskArrayImplTest, Size) {
+TEST(PandasMaskArrayImplTest, Size) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -165,12 +165,12 @@ TEST(BitmaskArrayImplTest, Size) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
   const auto size = bma.Size();
   ASSERT_EQ(size, 9);
 }
 
-TEST(BitmaskArrayImplTest, NBytes) {
+TEST(PandasMaskArrayImplTest, NBytes) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -179,57 +179,57 @@ TEST(BitmaskArrayImplTest, NBytes) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
   const auto size = bma.NBytes();
   ASSERT_EQ(size, 2);
 }
 
-class BitmaskArrayAnyAllTest : public testing::Test {
+class PandasMaskArrayAnyAllTest : public testing::Test {
 protected:
-  BitmaskArrayAnyAllTest() {
+  PandasMaskArrayAnyAllTest() {
     nanoarrow::UniqueBitmap first;
     ArrowBitmapInit(first.get());
 
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(first.get(), 1, 7));
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(first.get(), 0, 8));
-    bma1_ = BitmaskArrayImpl(std::move(first));
+    bma1_ = PandasMaskArrayImpl(std::move(first));
 
     nanoarrow::UniqueBitmap second;
     ArrowBitmapInit(second.get());
 
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(second.get(), 1, 15));
-    bma2_ = BitmaskArrayImpl(std::move(second));
+    bma2_ = PandasMaskArrayImpl(std::move(second));
 
     nanoarrow::UniqueBitmap third;
     ArrowBitmapInit(third.get());
 
     NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(third.get(), 0, 15));
-    bma3_ = BitmaskArrayImpl(std::move(third));
+    bma3_ = PandasMaskArrayImpl(std::move(third));
 
     nanoarrow::UniqueBitmap fourth;
     ArrowBitmapInit(fourth.get());
 
-    bma4_ = BitmaskArrayImpl(std::move(fourth));
+    bma4_ = PandasMaskArrayImpl(std::move(fourth));
   }
 
-  BitmaskArrayImpl bma1_, bma2_, bma3_, bma4_;
+  PandasMaskArrayImpl bma1_, bma2_, bma3_, bma4_;
 };
 
-TEST_F(BitmaskArrayAnyAllTest, All) {
+TEST_F(PandasMaskArrayAnyAllTest, All) {
   ASSERT_FALSE(bma1_.All());
   ASSERT_TRUE(bma2_.All());
   ASSERT_FALSE(bma3_.All());
   ASSERT_TRUE(bma4_.All());
 }
 
-TEST_F(BitmaskArrayAnyAllTest, Any) {
+TEST_F(PandasMaskArrayAnyAllTest, Any) {
   ASSERT_TRUE(bma1_.Any());
   ASSERT_TRUE(bma2_.Any());
   ASSERT_FALSE(bma3_.Any());
   ASSERT_FALSE(bma4_.Any());
 }
 
-TEST(BitmaskArrayImplTest, Sum) {
+TEST(PandasMaskArrayImplTest, Sum) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -238,11 +238,11 @@ TEST(BitmaskArrayImplTest, Sum) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 5));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
   ASSERT_EQ(bma.Sum(), 8);
 }
 
-TEST(BitmaskArrayImplTest, Copy) {
+TEST(PandasMaskArrayImplTest, Copy) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -250,7 +250,7 @@ TEST(BitmaskArrayImplTest, Copy) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
   const auto copied = bma.Copy();
 
   ASSERT_EQ(copied.GetItem(0), true);
@@ -259,7 +259,7 @@ TEST(BitmaskArrayImplTest, Copy) {
   ASSERT_EQ(copied.GetItem(3), true);
 }
 
-TEST(BitmaskArrayImplTest, Iteration) {
+TEST(PandasMaskArrayImplTest, Iteration) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());
 
@@ -267,7 +267,7 @@ TEST(BitmaskArrayImplTest, Iteration) {
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
   NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
 
-  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
 
   size_t idx = 0;
   for (auto value : bma) {

@@ -1,5 +1,5 @@
 project(
-    'pd-bitmask',
+    'pandas-mask',
     'cpp',
     version: '0.0.1.dev0',
     license: 'Apache-2.0',
@@ -15,21 +15,21 @@ nanobind_dep = dependency('nanobind')
 nanoarrow_dep = dependency('nanoarrow')
 
 impl_dep = declare_dependency(
-    sources: ['src/pd-bitmask/bitmask_impl.cc'],
+    sources: ['src/pandas-mask/pandas_mask_impl.cc'],
     dependencies: [nanoarrow_dep],
 )
 
 gtest_dep = dependency('gtest_main')
 impl_test = executable(
-    'bitmask-impl-test',
-    sources: ['src/pd-bitmask/bitmask_impl_test.cc'],
+    'pandas-mask-impl-test',
+    sources: ['src/pandas-mask/pandas_mask_impl_test.cc'],
     dependencies: [gtest_dep, impl_dep],
 )
 test('bitmask-impl', impl_test)
 
 py.extension_module(
-    'bitmask',
-    ['src/pd-bitmask/bitmask.cc'],
+    'pandas_mask',
+    ['src/pandas-mask/pandas_mask.cc'],
     dependencies: [nanobind_dep, impl_dep],
     install: true,
 )

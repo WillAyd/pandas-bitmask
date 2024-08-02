@@ -1,20 +1,20 @@
 import io
 import pickle
 
-from bitmask import BitmaskArray
+from pandas_mask import PandasMaskArray
 import numpy as np
 import pytest
 
 def test_constructor():
     arr = np.array([True, False, True, False, False])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
     for index, x in enumerate(arr):
         assert bma[index] == x
 
 @pytest.mark.parametrize("first_index,second_index", ([1, 2], [-3, -2]))
 def test_settiem(first_index, second_index):
     arr = np.array([True, False, True, True])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
     assert bma[first_index] == False
     assert bma[second_index] == True
     bma[first_index] = True
@@ -24,12 +24,12 @@ def test_settiem(first_index, second_index):
 
 def test_length():
     arr = np.array([True, False, True, False, False])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
     assert len(bma) == len(arr)
 
 def test_invert():
     arr = np.array([True, False, True, False, False])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
     inverted = ~bma
     for index, x in enumerate(arr):
         assert inverted[index] != x
@@ -37,8 +37,8 @@ def test_invert():
 def test_and():
     arr = np.array([True, False, True, False, False])
     other = np.array([True, True, False, True, True])
-    bma = BitmaskArray(arr)
-    bma_other = BitmaskArray(other)
+    bma = PandasMaskArray(arr)
+    bma_other = PandasMaskArray(other)
     result = bma & bma_other
 
     assert result[0]
@@ -50,8 +50,8 @@ def test_and():
 def test_or():
     arr = np.array([True, False, True, False, False])
     other = np.array([True, True, False, True, True])
-    bma = BitmaskArray(arr)
-    bma_other = BitmaskArray(other)
+    bma = PandasMaskArray(arr)
+    bma_other = PandasMaskArray(other)
     result = bma | bma_other
 
     assert result[0]
@@ -63,8 +63,8 @@ def test_or():
 def test_xor():
     arr = np.array([True, False, True, False, False])
     other = np.array([True, True, False, True, True])
-    bma = BitmaskArray(arr)
-    bma_other = BitmaskArray(other)
+    bma = PandasMaskArray(arr)
+    bma_other = PandasMaskArray(other)
     result = bma ^ bma_other
 
     assert not result[0]
@@ -75,13 +75,13 @@ def test_xor():
 
 def test_size():
     arr = np.array([True, False, True, False, False])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     assert bma.size == len(arr)
 
 def test_nbytes():
     arr = np.array([True, False, True, False, False, True, True, True, True])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     assert bma.nbytes == 2
 
@@ -96,36 +96,36 @@ def test_nbytes():
     ],
 )
 def test_bytes(arr, expected):
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
     assert bma.bytes == expected
 
 def test_dtype():
     arr = np.array([True, False, True, False, False, True, True, True, True])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     assert bma.dtype == "bool"
 
 def test_any():
     arr = np.array([True, False, True, False, False, True, True, True, True])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     assert arr.any()
 
 def test_all():
     arr = np.array([True, False, True, False, False, True, True, True, True])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     assert not arr.all()
 
 def test_sum():
     arr = np.array([True, False, True, False, False, True, True, True, True])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     assert bma.sum() == 6
 
 def test_copy():
     arr = np.array([True, False, True, False, False, True, True, True, True])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
     copied = bma.copy()
 
     assert copied is not bma
@@ -134,14 +134,14 @@ def test_copy():
 
 def test_numpy_implicit_conversion():
     arr = np.array([True, False, True, False, False])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     arr2 = np.array(bma)
     assert (arr == arr2).all()
 
 def test_pickle_roundtrip():
     arr = np.array([True, False, True, False, False])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     buf = io.BytesIO()
     pickle.dump(bma, buf)
@@ -154,7 +154,7 @@ def test_pickle_roundtrip():
 
 def test_iter():
     arr = np.array([True, False, True, False, False])
-    bma = BitmaskArray(arr)
+    bma = PandasMaskArray(arr)
 
     itr = iter(bma)
     assert next(itr)

@@ -7,21 +7,21 @@
 #include <memory>
 #include <stdexcept>
 
-class BitmaskArrayImpl {
+class PandasMaskArrayImpl {
 public:
   // TODO: this should be private
   nanoarrow::UniqueBitmap bitmap_;
 
-  BitmaskArrayImpl();
-  explicit BitmaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap);
+  PandasMaskArrayImpl();
+  explicit PandasMaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap);
   auto Length() const noexcept -> ssize_t;
   auto GetItem(ssize_t index) const -> bool;
   auto SetItem(ssize_t index, bool value) -> void;
-  auto Invert() const noexcept -> BitmaskArrayImpl;
+  auto Invert() const noexcept -> PandasMaskArrayImpl;
 
   template <typename OP>
-  auto BinaryOp(const BitmaskArrayImpl &other, OP op) const
-      -> BitmaskArrayImpl {
+  auto BinaryOp(const PandasMaskArrayImpl &other, OP op) const
+      -> PandasMaskArrayImpl {
     if (bitmap_->size_bits != other.bitmap_->size_bits) {
       throw std::invalid_argument(
           "Shape of other does not match bitmask shape");
@@ -57,7 +57,7 @@ public:
     new_bitmap->size_bits = bitmap_->size_bits;
     new_bitmap->buffer.size_bytes = bitmap_->buffer.size_bytes;
 
-    return BitmaskArrayImpl(std::move(new_bitmap));
+    return PandasMaskArrayImpl(std::move(new_bitmap));
   }
 
   auto Size() const noexcept -> ssize_t;
@@ -66,11 +66,11 @@ public:
   auto All() const noexcept -> bool;
   auto Sum() const noexcept -> ssize_t;
 
-  auto Copy() const noexcept -> BitmaskArrayImpl;
+  auto Copy() const noexcept -> PandasMaskArrayImpl;
 
   class iterator {
   public:
-    explicit iterator(const BitmaskArrayImpl &bmai, int curr_index = 0)
+    explicit iterator(const PandasMaskArrayImpl &bmai, int curr_index = 0)
         : bmai_(bmai), curr_index_(curr_index) {}
 
     iterator &operator++() {
@@ -87,7 +87,7 @@ public:
     bool operator*() { return bmai_.GetItem(curr_index_); }
 
   private:
-    const BitmaskArrayImpl &bmai_;
+    const PandasMaskArrayImpl &bmai_;
     int curr_index_ = 0;
   };
 

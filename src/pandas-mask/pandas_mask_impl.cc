@@ -1,15 +1,15 @@
 /// Implementation of the Bitmap Array class
 /// Nothing in this mmodule may use the Python runtime
-#include "bitmask_impl.h"
+#include "pandas_mask_impl.h"
 #include "buffer_inline.h"
 
-BitmaskArrayImpl::BitmaskArrayImpl() = default;
-BitmaskArrayImpl::BitmaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap)
+PandasMaskArrayImpl::PandasMaskArrayImpl() = default;
+PandasMaskArrayImpl::PandasMaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap)
     : bitmap_(std::move(bitmap)) {}
-auto BitmaskArrayImpl::Length() const noexcept -> ssize_t {
+auto PandasMaskArrayImpl::Length() const noexcept -> ssize_t {
   return bitmap_->size_bits;
 }
-auto BitmaskArrayImpl::GetItem(ssize_t index) const -> bool {
+auto PandasMaskArrayImpl::GetItem(ssize_t index) const -> bool {
   if (index < 0) {
     index += bitmap_->size_bits;
     if (index < 0) {
@@ -23,7 +23,7 @@ auto BitmaskArrayImpl::GetItem(ssize_t index) const -> bool {
   return ArrowBitGet(bitmap_->buffer.data, index);
 }
 
-auto BitmaskArrayImpl::SetItem(ssize_t index, bool value) -> void {
+auto PandasMaskArrayImpl::SetItem(ssize_t index, bool value) -> void {
   if (index < 0) {
     index += bitmap_->size_bits;
     if (index < 0) {
@@ -37,7 +37,7 @@ auto BitmaskArrayImpl::SetItem(ssize_t index, bool value) -> void {
   ArrowBitSetTo(bitmap_->buffer.data, index, value);
 }
 
-auto BitmaskArrayImpl::Invert() const noexcept -> BitmaskArrayImpl {
+auto PandasMaskArrayImpl::Invert() const noexcept -> PandasMaskArrayImpl {
   nanoarrow::UniqueBitmap new_bitmap;
   const size_t nbits = bitmap_->size_bits;
 
@@ -63,18 +63,18 @@ auto BitmaskArrayImpl::Invert() const noexcept -> BitmaskArrayImpl {
   }
 
   new_bitmap->size_bits = nbits;
-  return BitmaskArrayImpl(std::move(new_bitmap));
+  return PandasMaskArrayImpl(std::move(new_bitmap));
 }
 
-auto BitmaskArrayImpl::Size() const noexcept -> ssize_t {
+auto PandasMaskArrayImpl::Size() const noexcept -> ssize_t {
   return bitmap_->size_bits;
 }
 
-auto BitmaskArrayImpl::NBytes() const noexcept -> ssize_t {
+auto PandasMaskArrayImpl::NBytes() const noexcept -> ssize_t {
   return bitmap_->buffer.size_bytes;
 }
 
-auto BitmaskArrayImpl::Any() const noexcept -> bool {
+auto PandasMaskArrayImpl::Any() const noexcept -> bool {
   const int64_t nbits = bitmap_->size_bits;
   if (nbits < 1) {
     return false;
@@ -110,7 +110,7 @@ auto BitmaskArrayImpl::Any() const noexcept -> bool {
   return false;
 }
 
-auto BitmaskArrayImpl::All() const noexcept -> bool {
+auto PandasMaskArrayImpl::All() const noexcept -> bool {
   const int64_t nbits = bitmap_->size_bits;
   if (nbits < 1) {
     return true;
@@ -146,12 +146,12 @@ auto BitmaskArrayImpl::All() const noexcept -> bool {
   return true;
 }
 
-auto BitmaskArrayImpl::Sum() const noexcept -> ssize_t {
+auto PandasMaskArrayImpl::Sum() const noexcept -> ssize_t {
   return static_cast<ssize_t>(
       ArrowBitCountSet(bitmap_->buffer.data, 0, bitmap_->size_bits));
 }
 
-auto BitmaskArrayImpl::Copy() const noexcept -> BitmaskArrayImpl {
+auto PandasMaskArrayImpl::Copy() const noexcept -> PandasMaskArrayImpl {
   nanoarrow::UniqueBitmap new_bitmap;
   const size_t nbits = bitmap_->size_bits;
 
@@ -161,5 +161,5 @@ auto BitmaskArrayImpl::Copy() const noexcept -> BitmaskArrayImpl {
          bitmap_->buffer.size_bytes);
 
   new_bitmap->size_bits = nbits;
-  return BitmaskArrayImpl(std::move(new_bitmap));
+  return PandasMaskArrayImpl(std::move(new_bitmap));
 }
