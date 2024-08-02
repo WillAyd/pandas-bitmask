@@ -7,10 +7,11 @@
 #include <functional>
 
 namespace nb = nanobind;
+using np_arr_type = nb::ndarray<nb::numpy, uint8_t, nb::shape<-1>>;
 
 class BitmaskArray {
 public:
-  explicit BitmaskArray(nb::ndarray<uint8_t, nb::shape<-1>> np_array) {
+  explicit BitmaskArray(np_arr_type np_array) {
     impl_ = std::make_unique<BitmaskArrayImpl>(BitmaskArrayImpl());
     const auto vw = np_array.view();
     const auto nelems = vw.shape(0);
@@ -66,8 +67,7 @@ public:
     return BitmaskArray(impl_->Copy());
   }
 
-  auto NdArray() const noexcept
-      -> nb::ndarray<nb::numpy, const bool, nb::ndim<1>> {
+  auto NdArray() const noexcept -> np_arr_type {
     const auto nelems = this->Length();
     bool *data = new bool[nelems];
     ArrowBitsUnpackInt8(impl_->bitmap_->buffer.data, 0, nelems,
@@ -75,8 +75,7 @@ public:
     nb::capsule owner(data, [](void *p) noexcept { delete[] (bool *)p; });
 
     size_t shape[1] = {static_cast<size_t>(nelems)};
-    return nb::ndarray<nb::numpy, const bool, nb::ndim<1>>(data, 1, shape,
-                                                           owner);
+    return np_arr_type(data, 1, shape, owner);
   }
 
 private:
@@ -88,7 +87,7 @@ private:
 
 NB_MODULE(bitmask, m) {
   nb::class_<BitmaskArray>(m, "BitmaskArray")
-      .def(nb::init<nb::ndarray<uint8_t, nb::shape<-1>>>())
+      .def(nb::init<np_arr_type>())
       .def("__len__", &BitmaskArray::Length)
       .def("__setitem__", &BitmaskArray::SetItem)
       .def("__getitem__", &BitmaskArray::GetItem)
@@ -96,8 +95,12 @@ NB_MODULE(bitmask, m) {
       .def("__and__", &BitmaskArray::And)
       .def("__or__", &BitmaskArray::Or)
       .def("__xor__", &BitmaskArray::XOr)
-      //.def("__getstate__",
-      //.def("__setstate__",
+      .def("__getstate__",
+           [](const BitmaskArray &bma) { return bma.NdArray(); })
+      .def("__setstate__",
+           [](BitmaskArray &bma, const np_arr_type &state) {
+             new (&bma) BitmaskArray(state);
+           })
       //.def("__iter__",
       //.def("concatenate",
       .def_prop_ro("size", &BitmaskArray::Size)

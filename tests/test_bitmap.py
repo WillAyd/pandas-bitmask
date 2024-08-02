@@ -1,3 +1,6 @@
+import io
+import pickle
+
 from bitmask import BitmaskArray
 import numpy as np
 import pytest
@@ -135,3 +138,16 @@ def test_numpy_implicit_conversion():
 
     arr2 = np.array(bma)
     assert (arr == arr2).all()
+
+def test_pickle_roundtrip():
+    arr = np.array([True, False, True, False, False])
+    bma = BitmaskArray(arr)
+
+    buf = io.BytesIO()
+    pickle.dump(bma, buf)
+
+    buf.seek(0)
+    bma2 = pickle.load(buf)
+
+    for i in range(len(arr)):
+        assert bma[i] == bma2[i]
