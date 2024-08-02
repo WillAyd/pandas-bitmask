@@ -163,16 +163,3 @@ auto BitmaskArrayImpl::Copy() const noexcept -> BitmaskArrayImpl {
   new_bitmap->size_bits = nbits;
   return BitmaskArrayImpl(std::move(new_bitmap));
 }
-
-auto BitmaskArrayImpl::ExposeBufferForPython() noexcept -> std::byte * {
-  const auto nelems = this->Length();
-  py_buffer_ = new std::byte[nelems];
-  ArrowBitsUnpackInt8(bitmap_->buffer.data, 0, nelems,
-                      reinterpret_cast<int8_t *>(py_buffer_));
-
-  return py_buffer_;
-}
-
-auto BitmaskArrayImpl::ReleasePyBuffer() noexcept -> void {
-  delete[] py_buffer_;
-}

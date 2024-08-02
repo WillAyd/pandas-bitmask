@@ -258,22 +258,3 @@ TEST(BitmaskArrayImplTest, Copy) {
   ASSERT_EQ(copied.GetItem(2), true);
   ASSERT_EQ(copied.GetItem(3), true);
 }
-
-TEST(BitmaskArrayImplTest, ExposeBufferForPython) {
-  nanoarrow::UniqueBitmap bitmap;
-  ArrowBitmapInit(bitmap.get());
-
-  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
-  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
-  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
-
-  auto bma = BitmaskArrayImpl(std::move(bitmap));
-  const auto py_buffer = bma.ExposeBufferForPython();
-
-  ASSERT_EQ(static_cast<unsigned int>(py_buffer[0]), 1);
-  ASSERT_EQ(static_cast<unsigned int>(py_buffer[1]), 0);
-  ASSERT_EQ(static_cast<unsigned int>(py_buffer[2]), 1);
-  ASSERT_EQ(static_cast<unsigned int>(py_buffer[3]), 1);
-
-  bma.ReleasePyBuffer();
-}

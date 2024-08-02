@@ -1,4 +1,5 @@
 #include "bitmask_impl.h"
+#include "nanoarrow.h"
 
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
@@ -48,9 +49,6 @@ public:
   auto NBytes() const noexcept -> Py_ssize_t { return impl_->NBytes(); }
 
   auto Bytes() const {
-    // TODO: is there a way to use the BitmaskImpl directly instead of creating
-    // a bytearray first? The only point of the bytearray is to create an object
-    // that uses the Python buffer protocol, which we
     auto py_bytearray = PyByteArray_FromStringAndSize(
         reinterpret_cast<const char *>(impl_->bitmap_->buffer.data),
         impl_->bitmap_->buffer.size_bytes);
@@ -68,11 +66,17 @@ public:
     return BitmaskArray(impl_->Copy());
   }
 
-  auto GetPyBuffer() const noexcept -> std::byte * {
-    return impl_->ExposeBufferForPython();
-  }
-  auto ReleasePyBuffer() const noexcept -> void {
-    return impl_->ReleasePyBuffer();
+  auto NdArray() const noexcept
+      -> nb::ndarray<nb::numpy, const bool, nb::ndim<1>> {
+    const auto nelems = this->Length();
+    bool *data = new bool[nelems];
+    ArrowBitsUnpackInt8(impl_->bitmap_->buffer.data, 0, nelems,
+                        reinterpret_cast<int8_t *>(data));
+    nb::capsule owner(data, [](void *p) noexcept { delete[] (bool *)p; });
+
+    size_t shape[1] = {static_cast<size_t>(nelems)};
+    return nb::ndarray<nb::numpy, const bool, nb::ndim<1>>(data, 1, shape,
+                                                           owner);
   }
 
 private:
@@ -82,38 +86,8 @@ private:
   std::unique_ptr<BitmaskArrayImpl> impl_;
 };
 
-int GetBuffer(PyObject *self, Py_buffer *buffer, int flags) {
-  BitmaskArray *array = nb::inst_ptr<BitmaskArray>(self);
-  const auto nelems = array->Length();
-  buffer->buf = array->GetPyBuffer();
-  buffer->format = strdup("?");
-  buffer->internal = nullptr;
-  buffer->itemsize = 1;
-  buffer->len = nelems;
-  buffer->ndim = 1; // TODO: don't hard code this
-  buffer->obj = self;
-  buffer->readonly = 1;
-  buffer->shape = new Py_ssize_t[1]{nelems};
-  buffer->strides = new Py_ssize_t[1]{1};
-  buffer->suboffsets = nullptr;
-
-  return 0;
-}
-
-void ReleaseBuffer(PyObject *self, Py_buffer *buffer) {
-  delete buffer->shape;
-  delete buffer->strides;
-
-  BitmaskArray *array = nb::inst_ptr<BitmaskArray>(self);
-  array->ReleasePyBuffer();
-}
-
-PyType_Slot slots[] = {{Py_bf_getbuffer, (void *)GetBuffer},
-                       {Py_bf_releasebuffer, (void *)ReleaseBuffer},
-                       {0, nullptr}};
-
 NB_MODULE(bitmask, m) {
-  nb::class_<BitmaskArray>(m, "BitmaskArray", nb::type_slots(slots))
+  nb::class_<BitmaskArray>(m, "BitmaskArray")
       .def(nb::init<nb::ndarray<uint8_t, nb::shape<-1>>>())
       .def("__len__", &BitmaskArray::Length)
       .def("__setitem__", &BitmaskArray::SetItem)
@@ -136,6 +110,5 @@ NB_MODULE(bitmask, m) {
       .def("sum", &BitmaskArray::Sum)
       //.def("take_1d", &BitmaskArray::Take1D)
       .def("copy", &BitmaskArray::Copy)
-      //.def("to_numpy", &BitmaskArray::ToNumpy)
-      ;
+      .def("__array__", &BitmaskArray::NdArray);
 }

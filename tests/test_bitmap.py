@@ -129,11 +129,9 @@ def test_copy():
     for i in range(len(arr)):
         assert bma[i] == copied[i]
 
-"""
-def test_buffer_protocol():
+def test_numpy_implicit_conversion():
     arr = np.array([True, False, True, False, False])
     bma = BitmaskArray(arr)
-    mv = memoryview(bma)
-    for index, x in enumerate(arr):
-        assert mv[index] == x
-"""
+
+    arr2 = np.array(bma)
+    assert (arr == arr2).all()

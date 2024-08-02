@@ -70,7 +70,4 @@ public:
 
   auto ExposeBufferForPython() noexcept -> std::byte *;
   auto ReleasePyBuffer() noexcept -> void;
-
-private:
-  std::byte *py_buffer_; // Python buffer protocol does not support bits
 };
