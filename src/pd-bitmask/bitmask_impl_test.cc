@@ -258,3 +258,24 @@ TEST(BitmaskArrayImplTest, Copy) {
   ASSERT_EQ(copied.GetItem(2), true);
   ASSERT_EQ(copied.GetItem(3), true);
 }
+
+TEST(BitmaskArrayImplTest, Iteration) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+
+  const auto bma = BitmaskArrayImpl(std::move(bitmap));
+
+  size_t idx = 0;
+  for (auto value : bma) {
+    if (idx == 1) {
+      ASSERT_FALSE(value);
+    } else {
+      ASSERT_TRUE(value);
+    }
+    ++idx;
+  }
+}

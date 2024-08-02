@@ -1,6 +1,7 @@
 #include "bitmask_impl.h"
 #include "nanoarrow.h"
 
+#include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 
@@ -95,7 +96,12 @@ NB_MODULE(bitmask, m) {
            [](BitmaskArray &bma, const np_arr_type &state) {
              new (&bma) BitmaskArray(state);
            })
-      //.def("__iter__",
+      .def("__iter__",
+           [](const BitmaskArray &bma) {
+             return nb::make_iterator(nb::type<BitmaskArray>(),
+                                      "value_iterator", bma.pImpl_->begin(),
+                                      bma.pImpl_->end());
+           })
       //.def("concatenate",
       .def_prop_ro(
           "size",

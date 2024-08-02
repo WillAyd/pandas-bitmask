@@ -151,3 +151,17 @@ def test_pickle_roundtrip():
 
     for i in range(len(arr)):
         assert bma[i] == bma2[i]
+
+def test_iter():
+    arr = np.array([True, False, True, False, False])
+    bma = BitmaskArray(arr)
+
+    itr = iter(bma)
+    assert next(itr)
+    assert not next(itr)
+    assert next(itr)
+    assert not next(itr)
+    assert not next(itr)
+
+    with pytest.raises(StopIteration):
+        next(itr)

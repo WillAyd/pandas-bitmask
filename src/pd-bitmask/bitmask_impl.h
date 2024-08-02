@@ -68,6 +68,29 @@ public:
 
   auto Copy() const noexcept -> BitmaskArrayImpl;
 
-  auto ExposeBufferForPython() noexcept -> std::byte *;
-  auto ReleasePyBuffer() noexcept -> void;
+  class iterator {
+  public:
+    explicit iterator(const BitmaskArrayImpl &bmai, int curr_index = 0)
+        : bmai_(bmai), curr_index_(curr_index) {}
+
+    iterator &operator++() {
+      ++curr_index_;
+      return *this;
+    }
+
+    bool operator==(iterator other) const {
+      return &bmai_ == &other.bmai_ && curr_index_ == other.curr_index_;
+    }
+
+    bool operator!=(iterator other) const { return !(*this == other); }
+
+    bool operator*() { return bmai_.GetItem(curr_index_); }
+
+  private:
+    const BitmaskArrayImpl &bmai_;
+    int curr_index_ = 0;
+  };
+
+  iterator begin() const noexcept { return iterator(*this); }
+  iterator end() const noexcept { return iterator(*this, Length()); }
 };

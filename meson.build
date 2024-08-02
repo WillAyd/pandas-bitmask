@@ -14,26 +14,22 @@ py = import('python').find_installation()
 nanobind_dep = dependency('nanobind')
 nanoarrow_dep = dependency('nanoarrow')
 
-impl_lib = library(
-    'bitmask_impl',
-    ['src/pd-bitmask/bitmask_impl.cc'],
+impl_dep = declare_dependency(
+    sources: ['src/pd-bitmask/bitmask_impl.cc'],
     dependencies: [nanoarrow_dep],
-    install: true,
 )
 
 gtest_dep = dependency('gtest_main')
 impl_test = executable(
     'bitmask-impl-test',
     sources: ['src/pd-bitmask/bitmask_impl_test.cc'],
-    link_with: [impl_lib],
-    dependencies: [nanoarrow_dep, gtest_dep],
+    dependencies: [gtest_dep, impl_dep],
 )
 test('bitmask-impl', impl_test)
 
 py.extension_module(
     'bitmask',
     ['src/pd-bitmask/bitmask.cc'],
-    link_with: impl_lib,
-    dependencies: [nanobind_dep, nanoarrow_dep],
+    dependencies: [nanobind_dep, impl_dep],
     install: true,
 )
