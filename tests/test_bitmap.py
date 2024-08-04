@@ -165,3 +165,9 @@ def test_iter():
 
     with pytest.raises(StopIteration):
         next(itr)
+
+def test_shape():
+    arr = np.array([True, False, True, False, False])
+    bma = PandasMaskArray(arr)
+
+    assert bma.shape == tuple((5,))

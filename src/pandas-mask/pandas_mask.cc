@@ -55,6 +55,8 @@ public:
     size_t shape[1] = {static_cast<size_t>(nelems)};
     return np_arr_type(data, 1, shape, owner);
   }
+
+  auto Shape() const noexcept { return nb::make_tuple(pImpl_->Length()); }
 };
 
 NB_MODULE(pandas_mask, m) {
@@ -113,7 +115,7 @@ NB_MODULE(pandas_mask, m) {
                      return bma.pImpl_->NBytes();
                    })
       .def_prop_ro("bytes", &PandasMaskArray::Bytes)
-      //.def_prop_ro("shape", &PandasMaskArray::Shape)
+      .def_prop_ro("shape", &PandasMaskArray::Shape)
       .def_prop_ro("dtype",
                    [](const PandasMaskArray &bma) noexcept { return "bool"; })
       .def(
