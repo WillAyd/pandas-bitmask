@@ -15,9 +15,9 @@ def test_getitem_bounds_raise():
     arr = np.array([True, False, True, True])
     bma = PandasMaskArray(arr)
 
-    bma[4]
+    bma[3]
     with pytest.raises(IndexError):
-        bma[5]
+        bma[4]
 
     bma[-4]
     with pytest.raises(IndexError):
