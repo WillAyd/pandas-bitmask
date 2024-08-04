@@ -2,10 +2,11 @@
 /// Nothing in this mmodule may use the Python runtime
 #pragma once
 
-#include <nanoarrow/nanoarrow.hpp>
-
 #include <memory>
 #include <stdexcept>
+#include <vector>
+
+#include <nanoarrow/nanoarrow.hpp>
 
 class PandasMaskArrayImpl {
 public:
@@ -16,6 +17,8 @@ public:
   explicit PandasMaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap);
   auto Length() const noexcept -> ssize_t;
   auto GetItem(ssize_t index) const -> bool;
+  auto GetItem(std::vector<ssize_t> index) const -> PandasMaskArrayImpl;
+
   auto SetItem(ssize_t index, bool value) -> void;
   auto Invert() const noexcept -> PandasMaskArrayImpl;
 

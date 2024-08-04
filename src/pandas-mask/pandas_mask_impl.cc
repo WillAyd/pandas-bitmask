@@ -1,7 +1,7 @@
 /// Implementation of the Bitmap Array class
 /// Nothing in this mmodule may use the Python runtime
 #include "pandas_mask_impl.h"
-#include "buffer_inline.h"
+#include "nanoarrow.h"
 
 PandasMaskArrayImpl::PandasMaskArrayImpl() = default;
 PandasMaskArrayImpl::PandasMaskArrayImpl(nanoarrow::UniqueBitmap &&bitmap)
@@ -21,6 +21,20 @@ auto PandasMaskArrayImpl::GetItem(ssize_t index) const -> bool {
   }
 
   return ArrowBitGet(bitmap_->buffer.data, index);
+}
+
+auto PandasMaskArrayImpl::GetItem(std::vector<ssize_t> values) const
+    -> PandasMaskArrayImpl {
+  nanoarrow::UniqueBitmap new_bitmap;
+  ArrowBitmapInit(new_bitmap.get());
+  ArrowBitmapReserve(new_bitmap.get(), values.size());
+
+  for (const auto idx : values) {
+    const auto bit = GetItem(idx);
+    ArrowBitmapAppendUnsafe(new_bitmap.get(), bit, 1);
+  }
+
+  return PandasMaskArrayImpl(std::move(new_bitmap));
 }
 
 auto PandasMaskArrayImpl::SetItem(ssize_t index, bool value) -> void {

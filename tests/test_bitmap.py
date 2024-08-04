@@ -11,6 +11,78 @@ def test_constructor():
     for index, x in enumerate(arr):
         assert bma[index] == x
 
+def test_getitem_bounds_raise():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    bma[4]
+    with pytest.raises(IndexError):
+        bma[5]
+
+    bma[-4]
+    with pytest.raises(IndexError):
+        bma[-5]
+
+def test_getitem_list():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    idxer = [3, 1, 2, 1, 0]
+    result = bma[idxer]
+
+    assert len(result) == 5
+    assert result[0]
+    assert not result[1]
+    assert result[2]
+    assert not result[3]
+    assert result[4]
+
+def test_getitem_ndarray_bools():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    idxer = np.array([True, True, False, False])
+    result = bma[idxer]
+
+    assert len(result) == 2
+    assert result[0]
+    assert not result[1]
+
+def test_getitem_ndarray_ints():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    idxer = np.array([3, 1, 2, 1, 0])
+    result = bma[idxer]
+
+    idxer = [3, 1, 2, 1, 0]
+
+    result = bma[idxer]
+    assert len(result) == 5
+    assert result[0]
+    assert not result[1]
+    assert result[2]
+    assert not result[3]
+    assert result[4]
+
+def test_getitem_ndarray_raises():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    idxer = np.array([True, True, True])
+    with pytest.raises(ValueError, match="must be same size"):
+        bma[idxer]
+
+def test_getitem_slice():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    result = bma[1:]
+    assert len(result) == 3
+    assert not result[0]
+    assert result[1]
+    assert result[2]
+
 @pytest.mark.parametrize("first_index,second_index", ([1, 2], [-3, -2]))
 def test_settiem(first_index, second_index):
     arr = np.array([True, False, True, True])

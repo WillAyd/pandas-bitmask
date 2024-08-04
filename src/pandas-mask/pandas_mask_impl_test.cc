@@ -19,6 +19,23 @@ TEST(PandasMaskArrayImplTest, BitmapConstructor) {
   ASSERT_EQ(bma.GetItem(3), true);
 }
 
+TEST(PandasMaskArrayImplTest, GetItemVector) {
+  nanoarrow::UniqueBitmap bitmap;
+  ArrowBitmapInit(bitmap.get());
+
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 0, 1));
+  NANOARROW_THROW_NOT_OK(ArrowBitmapAppend(bitmap.get(), 1, 2));
+
+  const auto bma = PandasMaskArrayImpl(std::move(bitmap));
+  const auto result = bma.GetItem(std::vector<ssize_t>{3, 1, 3, 1, 0});
+  ASSERT_EQ(result.GetItem(0), true);
+  ASSERT_EQ(result.GetItem(1), false);
+  ASSERT_EQ(result.GetItem(2), true);
+  ASSERT_EQ(result.GetItem(3), false);
+  ASSERT_EQ(result.GetItem(4), true);
+}
+
 TEST(PandasMaskArrayImplTest, Length) {
   nanoarrow::UniqueBitmap bitmap;
   ArrowBitmapInit(bitmap.get());

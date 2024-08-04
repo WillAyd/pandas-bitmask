@@ -1,11 +1,12 @@
-#include "nanoarrow.h"
 #include "pandas_mask_impl.h"
 
+#include <functional>
+
+#include "nanoarrow.h"
 #include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
-
-#include <functional>
+#include <nanobind/stl/vector.h>
 
 namespace nb = nanobind;
 using np_arr_type = nb::ndarray<nb::numpy, uint8_t, nb::shape<-1>>;
@@ -35,6 +36,91 @@ public:
   explicit PandasMaskArray(nanoarrow::UniqueBitmap &&bitmap)
       : pImpl_(std::make_unique<PandasMaskArrayImpl>(
             PandasMaskArrayImpl(std::move(bitmap)))) {}
+
+  auto GetItem(nb::object indexer_obj) -> nb::object {
+    // Simple case - support integer scalar
+    ssize_t i;
+    if (nb::try_cast(indexer_obj, i, false)) {
+      return nb::bool_(pImpl_->GetItem(i));
+    }
+
+    // List of values
+    std::vector<ssize_t> values;
+    if (nb::try_cast(indexer_obj, values, false)) {
+      auto *pma = new PandasMaskArray(
+          std::forward<PandasMaskArrayImpl>(pImpl_->GetItem(values)));
+
+      nb::handle py_type = nb::type<PandasMaskArray>();
+      return nb::inst_take_ownership(py_type, pma);
+    }
+
+    // Boolean ndarray
+    nb::ndarray<const bool, nb::ndim<1>> bools;
+    if (nb::try_cast(indexer_obj, bools, false)) {
+      if (static_cast<ssize_t>(bools.size()) != pImpl_->Length()) {
+        throw nb::value_error(
+            "Boolean array indexer must be same size as PandasMask");
+      }
+
+      const auto vw = bools.view();
+      nanoarrow::UniqueBitmap new_bitmap;
+      ArrowBitmapInit(new_bitmap.get());
+      ArrowBitmapReserve(new_bitmap.get(), bools.size());
+
+      for (ssize_t idx = 0; idx < static_cast<ssize_t>(vw.shape(0)); ++idx) {
+        if (vw(idx)) {
+          const auto is_set = pImpl_->GetItem(idx);
+          ArrowBitmapAppendUnsafe(new_bitmap.get(), is_set, 1);
+        }
+      }
+
+      auto *pma = new PandasMaskArray(std::move(new_bitmap));
+      nb::handle py_type = nb::type<PandasMaskArray>();
+      return nb::inst_take_ownership(py_type, pma);
+    }
+
+    // Indexing ndarray
+    nb::ndarray<const ssize_t, nb::ndim<1>> indices;
+    if (nb::try_cast(indexer_obj, indices, false)) {
+      const auto vw = indices.view();
+      nanoarrow::UniqueBitmap new_bitmap;
+      ArrowBitmapInit(new_bitmap.get());
+      ArrowBitmapReserve(new_bitmap.get(), indices.size());
+
+      for (ssize_t idx = 0; idx < static_cast<ssize_t>(vw.shape(0)); ++idx) {
+        const auto pos = vw(idx);
+        const auto is_set = pImpl_->GetItem(pos);
+        ArrowBitmapAppend(new_bitmap.get(), is_set, 1);
+      }
+
+      auto *pma = new PandasMaskArray(std::move(new_bitmap));
+      nb::handle py_type = nb::type<PandasMaskArray>();
+      return nb::inst_take_ownership(py_type, pma);
+    }
+
+    // slice
+    nb::slice slice_obj;
+    if (nb::try_cast(indexer_obj, slice_obj, false)) {
+      const auto converted_slice = slice_obj.compute(pImpl_->Length());
+      auto [start, stop, step, length] = converted_slice;
+
+      nanoarrow::UniqueBitmap new_bitmap;
+      ArrowBitmapInit(new_bitmap.get());
+      ArrowBitmapReserve(new_bitmap.get(), length);
+
+      for (size_t i = 0; i < length; ++i) {
+        const auto is_set = pImpl_->GetItem(start);
+        ArrowBitmapAppendUnsafe(new_bitmap.get(), is_set, 1);
+        start += step;
+      }
+
+      auto *pma = new PandasMaskArray(std::move(new_bitmap));
+      nb::handle py_type = nb::type<PandasMaskArray>();
+      return nb::inst_take_ownership(py_type, pma);
+    }
+
+    throw nb::type_error("Invalid data type for GetItem");
+  }
 
   auto Bytes() const {
     auto py_bytearray = PyByteArray_FromStringAndSize(
@@ -70,10 +156,7 @@ NB_MODULE(pandas_mask, m) {
            [](const PandasMaskArray &bma, Py_ssize_t index, bool value) {
              return bma.pImpl_->SetItem(index, value);
            })
-      .def("__getitem__",
-           [](const PandasMaskArray &bma, Py_ssize_t index) {
-             return bma.pImpl_->GetItem(index);
-           })
+      .def("__getitem__", &PandasMaskArray::GetItem)
       .def("__invert__",
            [](const PandasMaskArray &bma) noexcept {
              return PandasMaskArray(bma.pImpl_->Invert());
@@ -117,7 +200,7 @@ NB_MODULE(pandas_mask, m) {
       .def_prop_ro("bytes", &PandasMaskArray::Bytes)
       .def_prop_ro("shape", &PandasMaskArray::Shape)
       .def_prop_ro("dtype",
-                   [](const PandasMaskArray &bma) noexcept { return "bool"; })
+                   [](const PandasMaskArray &) noexcept { return "bool"; })
       .def(
           "any",
           [](const PandasMaskArray &bma) noexcept { return bma.pImpl_->Any(); })
