@@ -124,6 +124,23 @@ public:
     throw nb::type_error("Invalid data type for GetItem");
   }
 
+  template <typename OP> auto BinOp(nb::object other) const {
+    np_arr_type bools;
+
+    // ndarray
+    if (nb::try_cast(other, bools, false)) {
+      PandasMaskArray other_pma{bools};
+      return PandasMaskArray(pImpl_->BinaryOp(*other_pma.pImpl_.get(), OP()));
+    }
+
+    if (nb::inst_check(other)) {
+      const auto other_pma = nb::inst_ptr<PandasMaskArray>(other);
+      return PandasMaskArray(pImpl_->BinaryOp(*other_pma->pImpl_.get(), OP()));
+    }
+
+    throw nb::type_error("Invalid other argument");
+  }
+
   auto Bytes() const {
     auto py_bytearray = PyByteArray_FromStringAndSize(
         reinterpret_cast<const char *>(pImpl_->bitmap_->buffer.data),
@@ -164,21 +181,9 @@ NB_MODULE(pandas_mask, m) {
            [](const PandasMaskArray &bma) noexcept {
              return PandasMaskArray(bma.pImpl_->Invert());
            })
-      .def("__and__",
-           [](const PandasMaskArray &bma, const PandasMaskArray &other) {
-             return PandasMaskArray(
-                 bma.pImpl_->BinaryOp(*other.pImpl_.get(), std::bit_and()));
-           })
-      .def("__or__",
-           [](const PandasMaskArray &bma, const PandasMaskArray &other) {
-             return PandasMaskArray(
-                 bma.pImpl_->BinaryOp(*other.pImpl_.get(), std::bit_or()));
-           })
-      .def("__xor__",
-           [](const PandasMaskArray &bma, const PandasMaskArray &other) {
-             return PandasMaskArray(
-                 bma.pImpl_->BinaryOp(*other.pImpl_.get(), std::bit_xor()));
-           })
+      .def("__and__", &PandasMaskArray::BinOp<std::bit_and<>>)
+      .def("__or__", &PandasMaskArray::BinOp<std::bit_or<>>)
+      .def("__xor__", &PandasMaskArray::BinOp<std::bit_xor<>>)
       .def("__getstate__",
            [](const PandasMaskArray &bma) { return bma.NdArray(); })
       .def("__setstate__",

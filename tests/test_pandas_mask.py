@@ -1,4 +1,5 @@
 import io
+import operator
 import pickle
 
 from pandas_mask import PandasMaskArray
@@ -132,12 +133,36 @@ def test_and():
     assert not result[3]
     assert not result[4]
 
+def test_and_numpy():
+    arr = np.array([True, False, True, False, False])
+    other = np.array([True, True, False, True, True])
+    bma = PandasMaskArray(arr)
+    result = bma & other
+
+    assert result[0]
+    assert not result[1]
+    assert not result[2]
+    assert not result[3]
+    assert not result[4]
+
 def test_or():
     arr = np.array([True, False, True, False, False])
     other = np.array([True, True, False, True, True])
     bma = PandasMaskArray(arr)
     bma_other = PandasMaskArray(other)
     result = bma | bma_other
+
+    assert result[0]
+    assert result[1]
+    assert result[2]
+    assert result[3]
+    assert result[4]
+
+def test_or_numpy():
+    arr = np.array([True, False, True, False, False])
+    other = np.array([True, True, False, True, True])
+    bma = PandasMaskArray(arr)
+    result = bma | other
 
     assert result[0]
     assert result[1]
@@ -157,6 +182,26 @@ def test_xor():
     assert result[2]
     assert result[3]
     assert result[4]
+
+def test_xor_numpy():
+    arr = np.array([True, False, True, False, False])
+    other = np.array([True, True, False, True, True])
+    bma = PandasMaskArray(arr)
+    result = bma ^ other
+
+    assert not result[0]
+    assert result[1]
+    assert result[2]
+    assert result[3]
+    assert result[4]
+
+@pytest.mark.parametrize("op", [operator.and_, operator.or_, operator.xor])
+def test_binop_raises(op):
+    arr = np.array([True, False, True, False, False])
+    bma = PandasMaskArray(arr)
+
+    with pytest.raises(TypeError):
+        result = op(bma, "foo")
 
 def test_size():
     arr = np.array([True, False, True, False, False])
