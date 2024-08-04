@@ -62,6 +62,7 @@ auto PandasMaskArrayImpl::Invert() const noexcept -> PandasMaskArrayImpl {
     new_bitmap->buffer.data[i] = ~bitmap_->buffer.data[i];
   }
 
+  new_bitmap->buffer.size_bytes = bitmap_->buffer.size_bytes;
   new_bitmap->size_bits = nbits;
   return PandasMaskArrayImpl(std::move(new_bitmap));
 }
@@ -160,6 +161,7 @@ auto PandasMaskArrayImpl::Copy() const noexcept -> PandasMaskArrayImpl {
   memcpy(new_bitmap->buffer.data, bitmap_->buffer.data,
          bitmap_->buffer.size_bytes);
 
+  new_bitmap->buffer.size_bytes = bitmap_->buffer.size_bytes;
   new_bitmap->size_bits = nbits;
   return PandasMaskArrayImpl(std::move(new_bitmap));
 }

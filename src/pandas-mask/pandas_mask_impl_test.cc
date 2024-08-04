@@ -97,6 +97,9 @@ TEST(PandasMaskArrayImplTest, Invert) {
   ASSERT_EQ(inverted.GetItem(2), false);
   ASSERT_EQ(inverted.GetItem(3), false);
   ASSERT_EQ(inverted.GetItem(8), false);
+
+  ASSERT_EQ(inverted.bitmap_->buffer.size_bytes, 2);
+  ASSERT_EQ(inverted.bitmap_->size_bits, 9);
 }
 
 class PandasMaskArrayBinaryOpTest : public testing::Test {
@@ -257,6 +260,9 @@ TEST(PandasMaskArrayImplTest, Copy) {
   ASSERT_EQ(copied.GetItem(1), false);
   ASSERT_EQ(copied.GetItem(2), true);
   ASSERT_EQ(copied.GetItem(3), true);
+
+  ASSERT_EQ(copied.bitmap_->buffer.size_bytes, 1);
+  ASSERT_EQ(copied.bitmap_->size_bits, 4);
 }
 
 TEST(PandasMaskArrayImplTest, Iteration) {
