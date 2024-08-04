@@ -59,7 +59,7 @@ public:
     }
 
     // Boolean ndarray
-    nb::ndarray<const bool, nb::ndim<1>> bools;
+    np_arr_type bools;
     if (nb::try_cast(indexer_obj, bools, false)) {
       if (static_cast<ssize_t>(bools.size()) != pImpl_->Length()) {
         throw nb::value_error(
@@ -126,6 +126,87 @@ public:
     throw nb::type_error("Invalid data type for GetItem");
   }
 
+  auto SetItem(nb::object indexer_obj, nb::object value_obj) {
+    // scalar indexer
+    ssize_t i;
+    if (nb::try_cast(indexer_obj, i, false)) {
+      bool value;
+      if (nb::try_cast(value_obj, value)) {
+        return pImpl_->SetItem(i, value);
+      } else {
+        throw nb::type_error("expected scalar value with scalar indexer");
+      }
+    }
+
+    // slice
+    nb::slice slice_obj;
+    if (nb::try_cast(indexer_obj, slice_obj, false)) {
+      const auto converted_slice = slice_obj.compute(pImpl_->Length());
+      auto [start, stop, step, length] = converted_slice;
+
+      bool value;
+      if (nb::try_cast(value_obj, value)) {
+        // optimization for an empty slice with a scalar value assignment
+        if ((start == 0) && (stop == pImpl_->Length()) && (step == 1)) {
+          ArrowBitsSetTo(pImpl_->bitmap_->buffer.data, 0, stop, value);
+          return;
+        } else {
+          for (size_t i = 0; i < length; ++i) {
+            if (value) {
+              ArrowBitSet(pImpl_->bitmap_->buffer.data, start);
+            } else {
+              ArrowBitClear(pImpl_->bitmap_->buffer.data, start);
+            }
+            start += step;
+          }
+          return;
+        }
+      }
+    }
+
+    // Boolean ndarray
+    np_arr_type bools;
+    if (nb::try_cast(indexer_obj, bools, false)) {
+      // can use a fast path if the size of the indexer matches our bitmask
+      const auto vw = bools.view();
+
+      // TODO: nanoarrow has ArrowBitsUnpackInt8 but not Pack equivalent,
+      // leaving some performance on the table
+      // if (pImpl_->Length() == static_cast<ssize_t>(vw.shape(0))) {
+      //  bool value;
+      //  if (nb::try_cast(value_obj, value)) {
+      // }
+      if (pImpl_->Length() != static_cast<ssize_t>(vw.shape(0))) {
+        throw nb::value_error(
+            "__setitem__ requires indexer must be same length as bitmask");
+      }
+
+      bool value;
+      if (nb::try_cast(value_obj, value)) {
+        for (ssize_t idx = 0; idx < static_cast<ssize_t>(vw.shape(0)); ++idx) {
+          const auto should_change = vw(idx);
+          if (!should_change) {
+            continue;
+          } else {
+            if (value) {
+              ArrowBitSet(pImpl_->bitmap_->buffer.data, idx);
+            } else {
+              ArrowBitClear(pImpl_->bitmap_->buffer.data, idx);
+            }
+          }
+        }
+        return;
+      }
+    }
+
+    // TODO: there are probably many more __setitem__ operations needed to
+    // mirror NumPy
+    // we can either try to implement them here or just fallback to a slow path
+    // where we convert to a NumPy array
+    throw nb::type_error(
+        "Combination of indexer and value not implemented by pandas_mask");
+  }
+
   template <typename OP> auto BinOp(nb::object other) const {
     np_arr_type bools;
 
@@ -152,7 +233,7 @@ public:
     return nb::steal(py_bytes);
   }
 
-  auto NdArray(nb::object dtype) const noexcept -> np_arr_type {
+  auto NdArray(nb::object) const noexcept -> np_arr_type {
     // TODO: right now we just ignore dtype, but maybe we should validate it?
     const auto nelems = pImpl_->Length();
     bool *data = new bool[nelems];
@@ -175,10 +256,7 @@ NB_MODULE(pandas_mask, m) {
            [](const PandasMaskArray &bma) noexcept {
              return bma.pImpl_->Length();
            })
-      .def("__setitem__",
-           [](const PandasMaskArray &bma, Py_ssize_t index, bool value) {
-             return bma.pImpl_->SetItem(index, value);
-           })
+      .def("__setitem__", &PandasMaskArray::SetItem)
       .def("__getitem__", &PandasMaskArray::GetItem)
       .def("__invert__",
            [](const PandasMaskArray &bma) noexcept {

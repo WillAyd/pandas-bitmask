@@ -98,7 +98,7 @@ def test_getitem_slice():
     assert result[2]
 
 @pytest.mark.parametrize("first_index,second_index", ([1, 2], [-3, -2]))
-def test_settiem(first_index, second_index):
+def test_settiem_basic(first_index, second_index):
     arr = np.array([True, False, True, True])
     bma = PandasMaskArray(arr)
     assert bma[first_index] == False
@@ -107,6 +107,50 @@ def test_settiem(first_index, second_index):
     bma[second_index] = False
     assert bma[first_index] == True
     assert bma[second_index] == False
+
+def test_setitem_scalar_indexer_non_scalar_value_raises():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    with pytest.raises(TypeError):
+        bma[0] = [True, False]
+
+def test_setitem_slice():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    bma[2:] = False
+    assert bma[0]
+    assert not bma[1]
+    assert not bma[2]
+    assert not bma[3]
+
+def test_setitem_empty_slice():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    bma[:] = False
+    for i in range(len(bma)):
+        assert not bma[i]
+
+def test_setitem_slice_raises():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    # This could possibly be implemented in the future
+    with pytest.raises(TypeError, match="not implemented"):
+        bma[2:] = [False, False]
+
+def test_setitem_bool_ndarray():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    indexer = np.array([True, False, True, False])
+    bma[indexer] = False
+    assert not bma[0]
+    assert not bma[1]
+    assert not bma[2]
+    assert bma[3]
 
 def test_length():
     arr = np.array([True, False, True, False, False])
