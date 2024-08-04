@@ -11,6 +11,19 @@ def test_constructor():
     for index, x in enumerate(arr):
         assert bma[index] == x
 
+def test_constructor_from_another_mask():
+    arr = np.array([True, False, True, False, False])
+    bma = PandasMaskArray(arr)
+
+    bma2 = PandasMaskArray(bma)
+    for index, x in enumerate(arr):
+        assert bma2[index] == x
+
+    # should copy - updates to original bma should not propogate
+    bma[1] = True
+    assert bma[1]
+    assert not bma2[1]
+
 def test_getitem_bounds_raise():
     arr = np.array([True, False, True, True])
     bma = PandasMaskArray(arr)

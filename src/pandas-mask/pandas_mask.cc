@@ -9,7 +9,7 @@
 #include <nanobind/stl/vector.h>
 
 namespace nb = nanobind;
-using np_arr_type = nb::ndarray<nb::numpy, uint8_t, nb::shape<-1>>;
+using np_arr_type = nb::ndarray<nb::numpy, bool, nb::shape<-1>>;
 
 class PandasMaskArray {
 public:
@@ -37,6 +37,9 @@ public:
       : pImpl_(std::make_unique<PandasMaskArrayImpl>(
             PandasMaskArrayImpl(std::move(bitmap)))) {}
 
+  PandasMaskArray(const PandasMaskArray &pma)
+      : pImpl_(std::make_unique<PandasMaskArrayImpl>(pma.pImpl_->Copy())) {}
+
   auto GetItem(nb::object indexer_obj) -> nb::object {
     // Simple case - support integer scalar
     ssize_t i;
@@ -47,8 +50,7 @@ public:
     // List of values
     std::vector<ssize_t> values;
     if (nb::try_cast(indexer_obj, values, false)) {
-      auto *pma = new PandasMaskArray(
-          std::forward<PandasMaskArrayImpl>(pImpl_->GetItem(values)));
+      auto *pma = new PandasMaskArray(pImpl_->GetItem(values));
 
       nb::handle py_type = nb::type<PandasMaskArray>();
       return nb::inst_take_ownership(py_type, pma);
@@ -148,6 +150,7 @@ public:
 NB_MODULE(pandas_mask, m) {
   nb::class_<PandasMaskArray>(m, "PandasMaskArray")
       .def(nb::init<np_arr_type>())
+      .def(nb::init<PandasMaskArray>())
       .def("__len__",
            [](const PandasMaskArray &bma) noexcept {
              return bma.pImpl_->Length();
