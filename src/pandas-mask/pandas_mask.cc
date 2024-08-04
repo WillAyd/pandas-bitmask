@@ -9,6 +9,8 @@
 #include <nanobind/stl/vector.h>
 
 namespace nb = nanobind;
+using namespace nb::literals;
+
 using np_arr_type = nb::ndarray<nb::numpy, bool, nb::shape<-1>>;
 
 class PandasMaskArray {
@@ -150,7 +152,8 @@ public:
     return nb::steal(py_bytes);
   }
 
-  auto NdArray() const noexcept -> np_arr_type {
+  auto NdArray(nb::object dtype) const noexcept -> np_arr_type {
+    // TODO: right now we just ignore dtype, but maybe we should validate it?
     const auto nelems = pImpl_->Length();
     bool *data = new bool[nelems];
     ArrowBitsUnpackInt8(pImpl_->bitmap_->buffer.data, 0, nelems,
@@ -185,7 +188,7 @@ NB_MODULE(pandas_mask, m) {
       .def("__or__", &PandasMaskArray::BinOp<std::bit_or<>>)
       .def("__xor__", &PandasMaskArray::BinOp<std::bit_xor<>>)
       .def("__getstate__",
-           [](const PandasMaskArray &bma) { return bma.NdArray(); })
+           [](const PandasMaskArray &bma) { return bma.NdArray(nb::none()); })
       .def("__setstate__",
            [](PandasMaskArray &bma, const np_arr_type &state) {
              new (&bma) PandasMaskArray(state);
@@ -223,5 +226,5 @@ NB_MODULE(pandas_mask, m) {
            [](const PandasMaskArray &bma) noexcept {
              return PandasMaskArray(bma.pImpl_->Copy());
            })
-      .def("__array__", &PandasMaskArray::NdArray);
+      .def("__array__", &PandasMaskArray::NdArray, "dtype"_a = nb::none());
 }

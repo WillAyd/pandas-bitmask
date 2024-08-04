@@ -269,6 +269,14 @@ def test_numpy_implicit_conversion():
     arr2 = np.array(bma)
     assert (arr == arr2).all()
 
+def test_asarray_with_argument():
+    arr = np.array([True, False, True, False, False])
+    bma = PandasMaskArray(arr)
+
+    # TODO: we currently just ignore the dtype argument, but maybe shouldn't
+    arr2 = np.asarray(bma, dtype="bool")
+    assert (arr == arr2).all()
+
 def test_pickle_roundtrip():
     arr = np.array([True, False, True, False, False])
     bma = PandasMaskArray(arr)
