@@ -41,3 +41,7 @@ skip = "*musllinux*"
 
 test-command = "pytest {project}/tests"
 test-requires = ["pytest", "numpy"]
+
+[tool.cibuildwheel.windows]
+before-build = "pip install delvewheel"
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
