@@ -1,6 +1,8 @@
 [build-system]
 requires = [
-  'meson-python',
+  # meson-python needs to be pinned on windows to work around
+  # https://github.com/mesonbuild/meson-python/issues/525
+  'meson-python==0.13.2',
   'meson',
   'cmake',  # for nanobind
   'wheel',
