@@ -1,0 +1,63 @@
+name: pandas_bitmask tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+
+jobs:
+  code-checks:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: pre-commit/action@v3.0.0
+
+  sanitizer-tests:
+    name: Run sanitizers on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-2022, macOS-12]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install meson
+
+      - name: Build with sanitizers
+        run: |
+          meson setup builddir -Db_sanitize=address,undefined
+          meson compile -C builddir
+
+      - name: Test with sanitizers
+        run: |
+          meson test -C builddir
+
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-2022, macOS-12]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Used to host cibuildwheel
+      - uses: actions/setup-python@v3
+
+      - name: Build wheels for ${{ matrix.os }}
+        uses: pypa/cibuildwheel@v2.16.5
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.14"
