@@ -2,7 +2,7 @@
 requires = [
   # meson-python needs to be pinned on windows to work around
   # https://github.com/mesonbuild/meson-python/issues/525
-  'meson-python==0.13.2',
+  'meson-python',
   'meson',
   'cmake',  # for nanobind
   'wheel',
@@ -42,6 +42,5 @@ skip = "*musllinux*"
 test-command = "pytest {project}/tests"
 test-requires = ["pytest", "numpy"]
 
-[tool.cibuildwheel.windows]
-before-build = "pip install delvewheel"
-repair-wheel-command = "delvewheel repair --ignore-in-wheel -w {dest_dir} {wheel}"
+[tool.meson-python.args]
+install = ['--skip-subprojects']
