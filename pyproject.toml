@@ -11,9 +11,9 @@ requires = [
 build-backend= 'mesonpy'
 
 [project]
-name = 'pd-bitmask'
+name = 'pandas_mask'
 dynamic = ['version']
-description = 'Bitmask implementation for pandas which adheres to the buffer protocol'
+description = 'Bitmask implementation for pandas which has select NumPy compatability'
 authors = [
   { name = 'Will Ayd', email='william.ayd@icloud.com' },
 ]
