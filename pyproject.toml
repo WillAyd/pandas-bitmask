@@ -39,12 +39,12 @@ classifiers = [
 build = "cp39-*64 cp310-*64 cp311-*64 cp312-*64"
 skip = "*musllinux*"
 
-#test-command = "pytest {project}/tests"
-#test-requires = ["pytest", "numpy"]
+test-command = "pytest {project}/tests"
+test-requires = ["pytest", "numpy"]
 
 [tool.meson-python.args]
 install = ['--skip-subprojects']
 
 [tool.cibuildwheel.windows]
 before-build = "pip install delvewheel"
-repair-wheel-command = "delvewheel repair --add-path {libdir} -w {dest_dir} {wheel}"
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
