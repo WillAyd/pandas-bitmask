@@ -70,6 +70,5 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: "10.14"
 
       - uses: actions/upload-artifact@v3
-        if: always()
         with:
           path: ./wheelhouse/*.whl
