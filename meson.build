@@ -6,14 +6,13 @@ project(
     default_options: [
         'warning_level=2',
         'cpp_std=c++17',
-        'default_library=static',
     ],
 )
 
 py = import('python').find_installation()
 
 nanobind_dep = dependency('nanobind')
-nanoarrow_dep = dependency('nanoarrow')
+nanoarrow_dep = dependency('nanoarrow', default_options: ['default_library=static'])
 
 impl_dep = declare_dependency(
     sources: ['src/pandas-mask/pandas_mask_impl.cc'],
