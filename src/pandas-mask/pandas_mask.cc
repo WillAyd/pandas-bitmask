@@ -233,8 +233,8 @@ public:
     return nb::steal(py_bytes);
   }
 
-  auto NdArray(nb::object) const noexcept -> np_arr_type {
-    // TODO: right now we just ignore dtype, but maybe we should validate it?
+  auto NdArray(nb::object, bool) const noexcept -> np_arr_type {
+    // TODO: right now we just ignore args and kwargs, but maybe we shouldn't?
     const auto nelems = pImpl_->Length();
     bool *data = new bool[nelems];
     ArrowBitsUnpackInt8(pImpl_->bitmap_->buffer.data, 0, nelems,
@@ -266,7 +266,9 @@ NB_MODULE(pandas_mask, m) {
       .def("__or__", &PandasMaskArray::BinOp<std::bit_or<>>)
       .def("__xor__", &PandasMaskArray::BinOp<std::bit_xor<>>)
       .def("__getstate__",
-           [](const PandasMaskArray &bma) { return bma.NdArray(nb::none()); })
+           [](const PandasMaskArray &bma) {
+             return bma.NdArray(nb::none(), false);
+           })
       .def("__setstate__",
            [](PandasMaskArray &bma, const np_arr_type &state) {
              new (&bma) PandasMaskArray(state);
@@ -304,5 +306,6 @@ NB_MODULE(pandas_mask, m) {
            [](const PandasMaskArray &bma) noexcept {
              return PandasMaskArray(bma.pImpl_->Copy());
            })
-      .def("__array__", &PandasMaskArray::NdArray, "dtype"_a = nb::none());
+      .def("__array__", &PandasMaskArray::NdArray, "dtype"_a = nb::none(),
+           "copy"_a = false);
 }
