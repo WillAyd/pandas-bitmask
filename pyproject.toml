@@ -4,7 +4,6 @@ requires = [
   # https://github.com/mesonbuild/meson-python/issues/525
   'meson-python',
   'meson',
-  'cmake',  # for nanobind
   'wheel',
 ]
 
@@ -47,4 +46,4 @@ install = ['--skip-subprojects']
 
 [tool.cibuildwheel.windows]
 before-build = "pip install delvewheel"
-repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+repair-wheel-command = "delvewheel repair --add-path C:/Windows/System32 -w {dest_dir} {wheel}"
