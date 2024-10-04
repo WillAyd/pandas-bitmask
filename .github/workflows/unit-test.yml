@@ -14,8 +14,8 @@ jobs:
     - uses: actions/checkout@v2
     - uses: pre-commit/action@v3.0.0
 
-  sanitizer-tests:
-    name: Run sanitizers on ${{ matrix.os }}
+  cpp-tests:
+    name: Run C++ tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -32,14 +32,21 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          python -m pip install meson
+          python -m pip install meson ninja
 
       - name: Build with sanitizers
         run: |
-          meson setup builddir -Db_sanitize=address,undefined
+          meson setup builddir -Db_sanitize="address,undefined"
           meson compile -C builddir
+        if: ${{ matrix.os != 'windows-2022' }}
 
-      - name: Test with sanitizers
+      - name: Build
+        run: |
+          meson setup builddir
+          meson compile -C builddir
+        if: ${{ matrix.os == 'windows-2022' }}
+
+      - name: Test
         run: |
           meson test -C builddir
 
@@ -61,3 +68,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.5
         env:
           MACOSX_DEPLOYMENT_TARGET: "10.14"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          path: ./wheelhouse/*.whl

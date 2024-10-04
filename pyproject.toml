@@ -1,17 +1,18 @@
 [build-system]
 requires = [
+  # meson-python needs to be pinned on windows to work around
+  # https://github.com/mesonbuild/meson-python/issues/525
   'meson-python',
   'meson',
-  'cmake',  # for nanobind
   'wheel',
 ]
 
 build-backend= 'mesonpy'
 
 [project]
-name = 'pd-bitmask'
+name = 'pandas_mask'
 dynamic = ['version']
-description = 'Bitmask implementation for pandas which adheres to the buffer protocol'
+description = 'Bitmask implementation for pandas which has select NumPy compatability'
 authors = [
   { name = 'Will Ayd', email='william.ayd@icloud.com' },
 ]
@@ -32,3 +33,17 @@ classifiers = [
     'Programming Language :: Python :: 3.12',
     'Topic :: Scientific/Engineering'
 ]
+
+[tool.cibuildwheel]
+build = "cp39-*64 cp310-*64 cp311-*64 cp312-*64"
+skip = "*musllinux*"
+
+test-command = "pytest {project}/tests"
+test-requires = ["pytest", "numpy"]
+
+[tool.meson-python.args]
+install = ['--skip-subprojects']
+
+[tool.cibuildwheel.windows]
+before-build = "pip install delvewheel"
+repair-wheel-command = "delvewheel repair --add-path C:/Windows/System32 -w {dest_dir} {wheel}"

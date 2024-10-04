@@ -6,6 +6,7 @@ project(
     default_options: [
         'warning_level=2',
         'cpp_std=c++17',
+        'default_library=static',
     ],
 )
 
@@ -25,7 +26,7 @@ impl_test = executable(
     sources: ['src/pandas-mask/pandas_mask_impl_test.cc'],
     dependencies: [gtest_dep, impl_dep],
 )
-test('bitmask-impl', impl_test)
+test('pandas-mask-impl', impl_test)
 
 py.extension_module(
     'pandas_mask',
