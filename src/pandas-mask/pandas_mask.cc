@@ -327,5 +327,9 @@ NB_MODULE(pandas_mask, m) {
            })
       .def("__array__", &PandasMaskArray::NdArray, "dtype"_a = nb::none(),
            "copy"_a = false)
-      .def("view", &PandasMaskArray::View, nb::arg("dtype"));
+      .def("view", &PandasMaskArray::View, nb::arg("dtype"))
+      .def("argmin",
+           [](const PandasMaskArray &bma) { return bma.pImpl_->ArgMin(); })
+      .def("argmax",
+           [](const PandasMaskArray &bma) { return bma.pImpl_->ArgMax(); });
 }

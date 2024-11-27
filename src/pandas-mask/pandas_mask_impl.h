@@ -70,6 +70,8 @@ public:
   auto Sum() const noexcept -> ssize_t;
 
   auto Copy() const noexcept -> PandasMaskArrayImpl;
+  auto ArgMin() const -> size_t;
+  auto ArgMax() const -> size_t;
 
   class iterator {
   public:
