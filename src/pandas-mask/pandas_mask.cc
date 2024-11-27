@@ -312,9 +312,8 @@ NB_MODULE(pandas_mask, m) {
       .def_prop_ro("shape", &PandasMaskArray::Shape)
       .def_prop_ro("dtype",
                    [](const PandasMaskArray &) noexcept { return "bool"; })
-      .def(
-          "any",
-          [](const PandasMaskArray &bma) noexcept { return bma.pImpl_->Any(); })
+      .def("any", [](const PandasMaskArray &bma,
+                     nb::kwargs kwargs) noexcept { return bma.pImpl_->Any(); })
       .def(
           "all",
           [](const PandasMaskArray &bma) noexcept { return bma.pImpl_->All(); })
