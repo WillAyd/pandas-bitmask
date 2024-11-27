@@ -1,11 +1,14 @@
 #include "pandas_mask_impl.h"
 
 #include <functional>
+#include <sstream>
+#include <string>
 
-#include "nanoarrow.h"
+#include <nanoarrow/nanoarrow.h>
 #include <nanobind/make_iterator.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
+#include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 
 namespace nb = nanobind;
@@ -246,6 +249,23 @@ public:
   }
 
   auto Shape() const noexcept { return nb::make_tuple(pImpl_->Length()); }
+
+  auto View(const std::string &dtype) const -> np_arr_type {
+    if (dtype == std::string("uint8")) {
+      const size_t nbits = pImpl_->bitmap_->size_bits;
+      bool *data = new bool[nbits];
+      ArrowBitsUnpackInt8(pImpl_->bitmap_->buffer.data, 0, nbits,
+                          reinterpret_cast<int8_t *>(data));
+      nb::capsule owner(data, [](void *p) noexcept { delete[] (bool *)p; });
+
+      size_t shape[1] = {static_cast<size_t>(nbits)};
+      return np_arr_type(data, 1, shape, owner);
+    }
+
+    std::stringstream ss{};
+    ss << "Invalid dtype argument: '" << dtype << "'";
+    throw nb::value_error(ss.str().c_str());
+  }
 };
 
 NB_MODULE(pandas_mask, m) {
@@ -307,5 +327,6 @@ NB_MODULE(pandas_mask, m) {
              return PandasMaskArray(bma.pImpl_->Copy());
            })
       .def("__array__", &PandasMaskArray::NdArray, "dtype"_a = nb::none(),
-           "copy"_a = false);
+           "copy"_a = false)
+      .def("view", &PandasMaskArray::View, nb::arg("dtype"));
 }
