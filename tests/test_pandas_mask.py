@@ -363,3 +363,16 @@ def test_view():
     result = bma.view("uint8")
     expected = np.array([1, 0, 1, 0, 0], dtype="uint8")
     npt.assert_array_equal(result, expected)
+
+
+def test_argmin():
+    arr = np.array([True, False, True, False, False])
+    bma = PandasMaskArray(arr)
+
+    assert bma.argmin() == 1
+
+def test_argmax():
+    arr = np.array([False, True, True, False, False])
+    bma = PandasMaskArray(arr)
+
+    assert bma.argmax() == 1

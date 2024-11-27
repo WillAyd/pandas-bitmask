@@ -179,3 +179,33 @@ auto PandasMaskArrayImpl::Copy() const noexcept -> PandasMaskArrayImpl {
   new_bitmap->size_bits = nbits;
   return PandasMaskArrayImpl(std::move(new_bitmap));
 }
+
+auto PandasMaskArrayImpl::ArgMin() const -> size_t {
+  if (Length() == 0) {
+    throw std::length_error("attempt to get argmax of an empty sequence");
+  }
+
+  for (std::size_t i = 0; const auto val : *this) {
+    if (val == false) {
+      return i;
+    }
+    i++;
+  }
+
+  return 0;
+}
+
+auto PandasMaskArrayImpl::ArgMax() const -> size_t {
+  if (Length() == 0) {
+    throw std::length_error("attempt to get argmin of an empty sequence");
+  }
+
+  for (std::size_t i = 0; const auto val : *this) {
+    if (val == true) {
+      return i;
+    }
+    i++;
+  }
+
+  return 0;
+}
