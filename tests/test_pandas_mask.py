@@ -163,6 +163,13 @@ def test_setitem_integral_ndarray_with_bool_scalar_raises():
     with pytest.raises(IndexError):
         bma[indexer] = False
 
+def test_setitem_empty_slice_with_bitmask_value():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    bma[:] = bma
+
+
 def test_setitem_bool_ndarray():
     arr = np.array([True, False, True, True])
     bma = PandasMaskArray(arr)

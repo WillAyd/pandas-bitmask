@@ -147,6 +147,7 @@ public:
       const auto converted_slice = slice_obj.compute(pImpl_->Length());
       auto [start, stop, step, length] = converted_slice;
 
+      // assign scalar
       bool value;
       if (nb::try_cast(value_obj, value)) {
         // optimization for an empty slice with a scalar value assignment
@@ -164,6 +165,13 @@ public:
           }
           return;
         }
+      }
+
+      // empty slice with another mask
+      if (nb::isinstance<PandasMaskArray>(value_obj)) {
+        const auto other = nb::cast<PandasMaskArray &>(value_obj);
+        pImpl_ = std::make_unique<PandasMaskArrayImpl>(other.pImpl_->Copy());
+        return;
       }
     }
 
