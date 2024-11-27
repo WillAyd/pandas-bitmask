@@ -4,8 +4,9 @@ project(
     version: '0.0.1.dev0',
     license: 'Apache-2.0',
     default_options: [
+        'buildtype=release',
         'warning_level=2',
-        'cpp_std=c++17',
+        'cpp_std=c++20',
         'default_library=static',
     ],
 )

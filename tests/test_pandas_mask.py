@@ -4,6 +4,7 @@ import pickle
 
 from pandas_mask import PandasMaskArray
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 def test_constructor():
@@ -353,3 +354,12 @@ def test_shape():
     bma = PandasMaskArray(arr)
 
     assert bma.shape == tuple((5,))
+
+
+def test_view():
+    arr = np.array([True, False, True, False, False])
+    bma = PandasMaskArray(arr)
+
+    result = bma.view("uint8")
+    expected = np.array([1, 0, 1, 0, 0], dtype="uint8")
+    npt.assert_array_equal(result, expected)
