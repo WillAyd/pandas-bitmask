@@ -147,6 +147,7 @@ public:
       const auto converted_slice = slice_obj.compute(pImpl_->Length());
       auto [start, stop, step, length] = converted_slice;
 
+      // assign scalar
       bool value;
       if (nb::try_cast(value_obj, value)) {
         // optimization for an empty slice with a scalar value assignment
@@ -164,6 +165,38 @@ public:
           }
           return;
         }
+      }
+
+      // empty slice with another mask
+      if (nb::isinstance<PandasMaskArray>(value_obj)) {
+        const auto other = nb::cast<PandasMaskArray &>(value_obj);
+        pImpl_ = std::make_unique<PandasMaskArrayImpl>(other.pImpl_->Copy());
+        return;
+      }
+    }
+
+    // Indexing ndarray with boolean scalar assignment
+    nb::ndarray<const ssize_t, nb::ndim<1>> indices;
+    if (nb::try_cast(indexer_obj, indices, false)) {
+      bool value;
+      if (nb::try_cast(value_obj, value)) {
+        const auto vw = indices.view();
+        for (ssize_t idx = 0; idx < static_cast<ssize_t>(vw.shape(0)); ++idx) {
+          const auto assign_idx = indices(idx);
+
+          if ((assign_idx < 0) || (assign_idx >= pImpl_->Length())) {
+            std::stringstream ss;
+            ss << "Index value out of range: " << assign_idx;
+            throw std::out_of_range(ss.str());
+          }
+
+          if (value) {
+            ArrowBitSet(pImpl_->bitmap_->buffer.data, assign_idx);
+          } else {
+            ArrowBitClear(pImpl_->bitmap_->buffer.data, assign_idx);
+          }
+        }
+        return;
       }
     }
 

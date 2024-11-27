@@ -142,6 +142,34 @@ def test_setitem_slice_raises():
     with pytest.raises(TypeError, match="not implemented"):
         bma[2:] = [False, False]
 
+def test_setitem_integral_ndarray_with_bool_scalar():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    indexer = np.array([2, 3])
+    bma[indexer] = False
+
+    assert bma[0]
+    assert not bma[1]
+    assert not bma[2]
+    assert not bma[3]
+
+def test_setitem_integral_ndarray_with_bool_scalar_raises():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    indexer = np.array([4])
+
+    with pytest.raises(IndexError):
+        bma[indexer] = False
+
+def test_setitem_empty_slice_with_bitmask_value():
+    arr = np.array([True, False, True, True])
+    bma = PandasMaskArray(arr)
+
+    bma[:] = bma
+
+
 def test_setitem_bool_ndarray():
     arr = np.array([True, False, True, True])
     bma = PandasMaskArray(arr)
